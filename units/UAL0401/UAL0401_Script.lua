@@ -33,10 +33,15 @@ UAL0401 = Class(AWalkingLandUnit) {
         end
         
         -- Clean up mid-tractor units
-        local claw1, claw2 = self:GetWeaponByLabel('RightArmTractor'), self:GetWeaponByLabel('LeftArmTractor')
-        claw1, claw2 = self:GetCurrentTarget(), self:GetCurrentTarget()
-        claw1:Destroy()
-        claw2:Destroy()
+        local claws = {'RightArmTractor', 'LeftArmTractor'}
+
+        for k, claw in claws do
+            local wep = self:GetWeaponByLabel(claw)
+            local target = wep:GetCurrentTarget()
+            if target and wep.watchThread and not target:BeenDestroyed() then
+                target:Destroy()
+            end
+        end
     end,
         
     DeathThread = function(self, overkillRatio, instigator)

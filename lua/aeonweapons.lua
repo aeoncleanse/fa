@@ -63,13 +63,10 @@ ADFTractorClaw = Class(DefaultBeamWeapon) {
             not EntityCategoryContains(categories.ALLUNITS, target) then
             return
         end
-
-        -- Ensure recon blips can't be the target
-        target = self:GetRealTarget(target)
         
         -- Ensure that targets already targeted can't be hit twice
         if self:IsTargetAlreadyUsed(target) then 
-            return 
+            return
         end
         
         -- Create visual effects for the target being sucked off the ground
@@ -79,65 +76,42 @@ ADFTractorClaw = Class(DefaultBeamWeapon) {
         
         DefaultBeamWeapon.PlayFxBeamStart(self, muzzle)
 
-        if not self.TT1 then
-            self.TT1 = self:ForkThread(self.TractorThread, target)
-            self:ForkThread(self.TractorWatchThread, target)
+        if not self.watchThread then
+            self.watchThread = self:ForkThread(self.TractorWatchThread, target)
+            self.tractorBeam = self:ForkThread(self.TractorThread, target)
         else
-            WARN('TT1 already exists')
+            WARN('watchThread already exists')
         end
     end,
     
-    -- Check for recon blips (aeonweapons.lua only)
-    -- Returns the unit creating the blip if the blip and the source are close enough together
-    GetRealTarget = function(self, target)
-        if target and not IsUnit(target) then
-            local unitTarget = target:GetSource() -- Find the unit creating the blip
-            local unitPos = unitTarget:GetPosition() -- Find the position of that unit
-            local reconPos = target:GetPosition() -- Find the position of the blip
-            local dist = VDist2(unitPos[1], unitPos[3], reconPos[1], reconPos[3])
-            if dist < 10 then
-                return unitTarget
+    -- Check if another weapon already has this unit as a target.
+    IsTargetAlreadyUsed = function(self, target)
+        for label, wep in self.unit.Weapons do
+            local weapon = self.unit:GetWeaponByLabel(label)
+            if weapon ~= self and weapon:GetCurrentTarget() == target then
+                return true
             end
         end
-        return target
-    end,
-    
-    -- Override this function in the unit to check if another weapon already has this
-    -- unit as a target.  Target argument should not be a recon blip
-    IsTargetAlreadyUsed = function(self, target)        
-        -- Make a table with one value for each weapon, in this case 3 (See unit script)
-        local weaponTable = {1, 2, 3}
-    
-        for k, v in weaponTable do
-            v = self.unit:GetWeapon(v)
-            if v != self then
-                if self:GetRealTarget(v:GetCurrentTarget()) == target then
-                    return true
-                end
-            end
-        end
+
         return false
     end,
 
     OnLostTarget = function(self)
         self:AimManipulatorSetEnabled(true)
         DefaultBeamWeapon.OnLostTarget(self)
-        DefaultBeamWeapon.PlayFxBeamEnd(self,self.Beams[1].Beam)
+        DefaultBeamWeapon.PlayFxBeamEnd(self, self.Beams[1].Beam)
     end,
 
     -- The actual weapon thread including sliders
     TractorThread = function(self, target)
-        self.unit.Trash:Add(target)
         local beam = self.Beams[1].Beam
-        if not beam then return end
-
         local muzzle = self:GetBlueprint().MuzzleSpecial
-        if not muzzle then return end
+        if not beam or not muzzle then return end
 
         local pos0 = beam:GetPosition(0)
         local pos1 = beam:GetPosition(1)
         local dist = VDist3(pos0, pos1) -- Length of the beam
-        
+
         -- Disable the target
         target:SetDoNotTarget(true)
         target:SetCanTakeDamage(false)
@@ -145,53 +119,64 @@ ADFTractorClaw = Class(DefaultBeamWeapon) {
             target:DisableShield()
             target:DisableDefaultToggleCaps()
         end
-        
+
+        -- Create a slider for the unit: unit, bone, goalX, goalY, goalZ, speed, worldspace
         self.Slider = CreateSlider(self.unit, muzzle, 0, 0, dist, -1, true)
-        
         WaitTicks(1)
-        WaitFor(self.Slider)
-        
-        -- Just in case attach fails
-        target:SetDoNotTarget(false)
+
+        -- Attach target to GC via slider
         target:AttachBoneTo(-1, self.unit, muzzle)
-        target:SetDoNotTarget(true) -- Make sure other units cease firing at the captured one
-        self.AimControl:SetResetPoseTime(10)
+        self.AimControl:SetResetPoseTime(4)
 
         self.Slider:SetSpeed(15)
-        self.Slider:SetGoal(0,0,0)
-        WaitTicks(1)
+        self.Slider:SetGoal(0, 0, 0)
         WaitFor(self.Slider)
 
-        if not target:IsDead() then
+        if not target.Dead then
             target.DestructionExplosionWaitDelayMin = 0
             target.DestructionExplosionWaitDelayMax = 0
+            
             for kEffect, vEffect in EffectTemplate.ACollossusTractorBeamCrush01 do
                 CreateEmitterAtBone(self.unit, muzzle , self.unit:GetArmy(), vEffect)
             end
             
             target:Destroy()
         end
-        
-        self.AimControl:SetResetPoseTime(2)
     end,
 
     TractorWatchThread = function(self, target)
-        while not target:IsDead() do
+        while not target.Dead do
             WaitTicks(1)
         end
-        KillThread(self.TT1)
-        self.TT1 = nil
+
+        if self.tractorBeam then
+            KillThread(self.tractorBeam)
+            self.tractorBeam = nil
+        end
+
         if self.Slider then
             self.Slider:Destroy()
             self.Slider = nil
         end
-        self.unit:DetachAll(self:GetBlueprint().MuzzleSpecial or 0)
-        DefaultBeamWeapon.PlayFxBeamEnd(self,self.Beams[1].Beam)
+
+        -- Disable beam FX
+        local beam = self.Beams[1].Beam
+        beam:DestroyBeamEffects()
+        beam:DestroyTerrainEffects()
+        beam.LastTerrainType = nil
+        beam:HideBeamSource()
+
+        -- Set up a delay before resetting the weapon for re-firing to allow us to limit the power of the weapon
+        WaitTicks(15)
+
+        -- Reset the rest of the system, and tell it to ready up again
+        DefaultBeamWeapon.PlayFxBeamEnd(self, beam)
         self:ResetTarget()
-        self.AimControl:SetResetPoseTime(2)
+        self.AimControl:SetResetPoseTime(1)
+        KillThread(self.watchThread)
+        self.watchThread = nil
     end,
 }
-
 
 ADFTractorClawStructure = Class(DefaultBeamWeapon) {
     BeamType = TractorClawCollisionBeam,
