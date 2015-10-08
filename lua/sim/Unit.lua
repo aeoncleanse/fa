@@ -1244,10 +1244,11 @@ Unit = Class(moho.unit_methods) {
             self.UnitBeingTeleported = nil
         end
 
-        -- Notify instigator of kill
-        if instigator and IsUnit(instigator) then
-            instigator:OnKilledUnit(self)
+        -- Notify instigator of kill and spread veterancy
+        if instigator and self.Instigators.Total ~= 0 then
+            self:VeterancyDispersal(self.Instigators.Total)
         end
+
         ArmyBrains[self:GetArmy()].LastUnitKilledBy = (instigator or self):GetArmy()
 
         if self.DeathWeaponEnabled ~= false then
@@ -1259,6 +1260,29 @@ Unit = Class(moho.unit_methods) {
         self:ForkThread(self.DeathThread, overkillRatio , instigator)
 
         ArmyBrains[self:GetArmy()]:AddUnitStat(self:GetUnitId(), "lost", 1)
+    end,
+    
+    -- This section contains functions used by the new veterancy system
+    -------------------------------------------------------------------
+    
+    -- Tell any living instigators that they need to gain some veterancy
+    VeterancyDispersal = function(unitKilled, totalDamage)
+        local bp = unitKilled:GetBlueprint()
+        local mass = bp.Economy.BuildCostMass
+        
+        -- Allow units to count for more or less than their real mass if needed.
+        mass = mass * (bp.Veteran.ImportanceMult or 1)
+        
+        for k, damageDealt in unitKilled.Instigators do
+            if k ~= "Total" then
+                -- k should be a unit's entity ID
+                if k and not k.Dead and k.Sync.VeteranLevel ~= 5 then
+                    -- Find the proportion of yourself that each instigator killed
+                    local massKilled = mass * (damageDealt / totalDamage)
+                    k:OnKilledUnit(unitKilled, massKilled)
+                end
+            end
+        end
     end,
 
     -- Argument val is true or false. False = cannot be killed
