@@ -6,6 +6,31 @@
 import('/lua/sim/AdjacencyBuffs.lua')
 import('/lua/sim/CheatBuffs.lua') -- Buffs for AI Cheating
 
+-- Table of multipliers used by the mass-driven veterancy system
+MultsTable = {
+    VETERANCYREGEN = {
+        TECH1 = 0.006,
+        TECH2 = 0.003,
+        TECH3 = 0.0007,
+        EXPERIMENTAL = 0.0005,
+        COMMAND = 0.00025,
+    },
+    VETERANCYREGENBOOST = {
+        TECH1 = 0.01,
+        TECH2 = 0.01,
+        TECH3 = 0.01,
+        EXPERIMENTAL = 0.01,
+        COMMAND = 0.01,
+    },
+    VETERANCYMAXHEALTH = {
+        TECH1 = 1.2,
+        TECH2 = 1.2,
+        TECH3 = 1.2,
+        EXPERIMENTAL = 1.2,
+        COMMAND = 1.2,
+    },
+}
+
 -- VETERANCY BUFFS - UNIT MAX HEALTH ONLY
 BuffBlueprint {
     Name = 'VeterancyMaxHealth1',
