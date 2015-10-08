@@ -24,6 +24,7 @@ local AIUtils = import('/lua/ai/aiutilities.lua')
 local BuffFieldBlueprints = import('/lua/sim/BuffField.lua').BuffFieldBlueprints
 local Wreckage = import('/lua/wreckage.lua')
 local Set = import('/lua/system/setutils.lua')
+local multsTable = import('/lua/sim/BuffDefinitions.lua').MultsTable
 
 -- Localised global functions for speed. ~10% for single references, ~30% for double (eg table.insert)
 
@@ -1290,39 +1291,104 @@ Unit = Class(moho.unit_methods) {
         self.CanBeKilled = val
     end,
 
-    --- Called when this unit kills another. Chiefly responsible for the veterancy system for now.
-    OnKilledUnit = function(self, unitKilled)
-        -- No XP for friendly fire...
-        if IsAlly(self:GetArmy(), unitKilled:GetArmy()) then
+    -- Called when this unit kills another. Chiefly responsible for the veterancy system for now.
+    OnKilledUnit = function(self, unitKilled, massKilled)
+        if not massKilled then return end -- Make sure engine calls aren't passed with massKilled == 0
+        
+        if not IsAlly(self:GetArmy(), unitKilled:GetArmy()) then
+            local defaultMult = 1.25
+            self:CalculateVeterancyLevel(massKilled, defaultMult) -- Bails if we've not gone up
+        end
+    end,
+
+    CalculateVeterancyLevel = function(self, massKilled, defaultMult)
+        local bp = self:GetBlueprint()
+        
+        -- Allow units to require more or less mass to level up. Decimal multipliers mean
+        -- faster leveling, >1 mean slower
+        local myValue = bp.Economy.BuildCostMass * (bp.Veteran.RequirementMult or defaultMult)
+        
+        -- Total up the mass the unit has killed overall, and store it
+        self.totalMassKilled = self.totalMassKilled + massKilled
+        
+        -- Calculate veterancy level. By default killing your own mass grants a level
+        local newVetLevel = math.min(math.floor(self.totalMassKilled / myValue), 5)
+        
+        -- Track progress to next level
+        self.Sync.veterancyProgress = math.min(self.totalMassKilled / myValue, 5) - newVetLevel
+        self.Sync.veterancyProgressText = math.min(self.totalMassKilled) .. '/' .. (myValue * (self.Sync.VeteranLevel + 1))
+        
+        -- Bail if our veterancy hasn't increased
+        if newVetLevel == self.Sync.VeteranLevel then
             return
         end
 
-        -- Or for killing incomplete units.
-        if unitKilled:GetFractionComplete() ~= 1 then
-            return
-        end
+        -- Update our recorded veterancy level
+        self.Sync.VeteranLevel = newVetLevel
+        
+        self:BuffVeterancy()
+    end,
+    
+    BuffVeterancy = function(self)
+        -- Create buffs
+        local regenBuff = self:NewCreateVeterancyBuff(self.techLevel, 'VETERANCYREGEN', 'REPLACE', -1, 'RegenPercent')
+        local healthBuff = self:NewCreateVeterancyBuff(self.techLevel, 'VETERANCYMAXHEALTH', 'REPLACE', -1, 'MaxHealth')
+        
+        -- Apply buffs
+        Buff.ApplyBuff(self, regenBuff)
+        Buff.ApplyBuff(self, healthBuff)
+    end,
 
-        -- Assign XP according to the category of unit killed.
-        -- TODO: We can very possibly do this more cheaply and clearly by using RTTI on unitKilled?
-        if EntityCategoryContains(categories.WALL, unitKilled) then
-            self:AddXP(WALL_XP)
-        elseif EntityCategoryContains(categories.STRUCTURE, unitKilled) then
-            self:AddXP(STRUCTURE_XP)
-        elseif EntityCategoryContains(categories.TECH1, unitKilled) then
-            self:AddXP(TECH1_XP)
-        elseif EntityCategoryContains(categories.TECH2, unitKilled) then
-            self:AddXP(TECH2_XP)
-        elseif EntityCategoryContains(categories.TECH3, unitKilled) then
-            self:AddXP(TECH3_XP)
-        elseif EntityCategoryContains(categories.EXPERIMENTAL, unitKilled) then
-            self:AddXP(EXPERIMENTAL_XP)
-        elseif EntityCategoryContains(categories.COMMAND, unitKilled) then
-            self:AddXP(COMMAND_XP)
+    NewCreateVeterancyBuff = function(self, techLevel, buffType, stacks, buffDuration, effectType)
+        -- Generate a buffName based on the unit's tech level. This way, once we generate it once,
+        -- We can just apply it for any future unit which fits.
+        -- Example: TECH1VETERANCYREGEN1
+        local vetLevel = self.Sync.VeteranLevel
+        
+        local buffName = 0
+        if buffType == "VETERANCYREGENBOOST" then
+            buffName = techLevel .. buffType
         else
-            self:AddXP(DEFAULT_XP)
+            buffName = techLevel .. buffType .. vetLevel
+        end
+        
+        -- Bail out if it already exists
+        if Buffs[buffName] then
+            return buffName
+        end
+        
+        local multVal = 0
+        if buffType ~= 'VETERANCYREGENBOOST' then
+            multVal = multsTable.buffType[techLevel]
+        elseif buffType == 'VETERANCYMAXHEALTH' then
+            multVal = 1 + ((multsTable.buffType[techLevel] - 1) * vetLevel)
+        else
+            multVal = multsTable.buffType[techLevel] * vetLevel
         end
 
-        ArmyBrains[self:GetArmy()]:AddUnitStat(unitKilled:GetUnitId(), "kills", 1)
+        -- This creates a buff into the global bufftable
+        
+        -- First, we need to create the Affects section
+        local affects = {}
+        affects[effectType] = {
+            DoNotFill = false, -- effectType == 'MaxHealth',
+            Add = 0,
+            Mult = multVal,
+        }
+        
+        -- Then fill in the main, global table
+        BuffBlueprint {
+            Name = buffName,
+            DisplayName = buffName,
+            BuffType = buffType,
+            AddMults = buffType == 'VETERANCYREGENBOOST',
+            Stacks = stacks,
+            Duration = buffDuration,
+            Affects = affects,
+        }
+
+        -- Return the buffname so the buff can be applied to the unit
+        return buffName
     end,
 
     DoDeathWeapon = function(self)
