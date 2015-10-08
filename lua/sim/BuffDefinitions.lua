@@ -60,7 +60,7 @@ BuffBlueprint {
     Duration = -1,
     Affects = {
         MaxHealth = {
-            DoNotFill = true,
+			DoNotFill = true,
             Add = 0,
             Mult = 1.4,
         },
