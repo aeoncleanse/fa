@@ -202,6 +202,7 @@ Unit = Class(moho.unit_methods) {
         -- Set up veterancy
         self.xp = 0
         self.VeteranLevel = 0
+        self.Instigators = {Total = 0}
 
         self.debris_Vector = Vector(0, 0, 0)
 
