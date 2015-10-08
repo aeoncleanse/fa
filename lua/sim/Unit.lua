@@ -1106,6 +1106,13 @@ Unit = Class(moho.unit_methods) {
     end,
 
     DoTakeDamage = function(self, instigator, amount, vector, damageType)
+    
+        -- Keep track of instigators, but only if it is a unit
+        if instigator and IsUnit(instigator) then
+            self.Instigators[instigator] = (self.Instigators[instigator] or 0) + amount
+            self.Instigators.Total = self.Instigators.Total + amount
+        end
+    
         local preAdjHealth = self:GetHealth()
 
         self:AdjustHealth(instigator, -amount)
