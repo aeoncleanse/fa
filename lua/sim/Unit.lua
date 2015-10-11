@@ -2019,6 +2019,7 @@ Unit = Class(moho.unit_methods) {
             self.totalMassKilled = 0
             self.Sync.VeteranLevel = 0
             self.Sync.veterancyProgress = 0
+            self.Sync.veterancyProgressText = 0 .. '/' .. bp.Economy.BuildCostMass
         end
         
         self:EnableUnitIntel('NotInitialized', nil)
