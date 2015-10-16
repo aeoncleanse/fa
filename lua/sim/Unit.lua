@@ -1391,6 +1391,12 @@ Unit = Class(moho.unit_methods) {
         return buffName
     end,
 
+    FindTechLevel = function(self)
+        for k, cat in pairs({'TECH1', 'TECH2', 'TECH3', 'EXPERIMENTAL', 'COMMAND'}) do
+            if EntityCategoryContains(ParseEntityCategory(cat), self) then return cat end
+        end
+    end,
+    
     DoDeathWeapon = function(self)
         if self:IsBeingBuilt() then return end
 
