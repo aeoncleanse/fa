@@ -204,6 +204,7 @@ Unit = Class(moho.unit_methods) {
         self.xp = 0
         self.VeteranLevel = 0
         self.Instigators = {Total = 0}
+        self.techLevel = self:FindTechLevel()
 
         self.debris_Vector = Vector(0, 0, 0)
 
@@ -2007,6 +2008,19 @@ Unit = Class(moho.unit_methods) {
         end
 
         local bp = self:GetBlueprint()
+
+        -- Set up Veterancy tracking here. Avoids needing to check completion later.
+        -- Do all this here so we only have to do for things which get completed        
+        -- Don't need to track damage for things which cannot attack!
+        -- Currently tracks things which have deathweapons, need to do something about that. -- IceDreamer
+        -- Solution - Since this requires some serious blueprinting to be finalised, when we do that,
+        -- insert 'COMBATANT' as a category for all units with weapons
+        if bp.Weapon then
+            self.totalMassKilled = 0
+            self.Sync.VeteranLevel = 0
+            self.Sync.veterancyProgress = 0
+        end
+        
         self:EnableUnitIntel('NotInitialized', nil)
         self:ForkThread(self.StopBeingBuiltEffects, builder, layer)
 
