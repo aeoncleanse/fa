@@ -279,6 +279,7 @@ UnitBlueprint {
         TransportClass = 10,
     },
     Veteran = {
+        RequirementMult = 0.5,
         Level1 = 100,
         Level2 = 200,
         Level3 = 300,

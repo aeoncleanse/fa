@@ -342,6 +342,7 @@ UnitBlueprint {
     StrategicIconName = 'icon_experimental_generic',
     StrategicIconSortPriority = 45,
     Veteran = {
+        RequirementMult = 0.5,
         Level1 = 32,
         Level2 = 64,
         Level3 = 96,
