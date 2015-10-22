@@ -853,6 +853,7 @@ UnitBlueprint {
         TransportClass = 3,
     },
     Veteran = {
+        RequirementMult = 1,
         Level1 = 20,
         Level2 = 40,
         Level3 = 65,
