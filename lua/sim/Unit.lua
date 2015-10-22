@@ -1297,27 +1297,18 @@ Unit = Class(moho.unit_methods) {
         if not massKilled then return end -- Make sure engine calls aren't passed with massKilled == 0
         
         if not IsAlly(self:GetArmy(), unitKilled:GetArmy()) then
-            local defaultMult = 1.25
-            self:CalculateVeterancyLevel(massKilled, defaultMult) -- Bails if we've not gone up
+            self:CalculateVeterancyLevel(massKilled) -- Bails if we've not gone up
         end
     end,
 
-    CalculateVeterancyLevel = function(self, massKilled, defaultMult)
+    CalculateVeterancyLevel = function(self, massKilled)
         local bp = self:GetBlueprint()
         
-        -- Allow units to require more or less mass to level up. Decimal multipliers mean
-        -- faster leveling, >1 mean slower
-        local myValue = bp.Economy.BuildCostMass * (bp.Veteran.RequirementMult or defaultMult)
-        
         -- Total up the mass the unit has killed overall, and store it
-        self.totalMassKilled = self.totalMassKilled + massKilled
+        self.Sync.totalMassKilled = math.floor(self.Sync.totalMassKilled + massKilled)
         
         -- Calculate veterancy level. By default killing your own mass grants a level
-        local newVetLevel = math.min(math.floor(self.totalMassKilled / myValue), 5)
-        
-        -- Track progress to next level
-        self.Sync.veterancyProgress = math.min(self.totalMassKilled / myValue, 5) - newVetLevel
-        self.Sync.veterancyProgressText = math.min(self.totalMassKilled) .. '/' .. (myValue * (self.Sync.VeteranLevel + 1))
+        local newVetLevel = math.min(math.floor(self.Sync.totalMassKilled / self.Sync.myValue), 5)
         
         -- Bail if our veterancy hasn't increased
         if newVetLevel == self.Sync.VeteranLevel then
@@ -2016,10 +2007,13 @@ Unit = Class(moho.unit_methods) {
         -- Solution - Since this requires some serious blueprinting to be finalised, when we do that,
         -- insert 'COMBATANT' as a category for all units with weapons
         if bp.Weapon then
-            self.totalMassKilled = 0
+            self.Sync.totalMassKilled = 0
             self.Sync.VeteranLevel = 0
-            self.Sync.veterancyProgress = 0
-            self.Sync.veterancyProgressText = 0 .. '/' .. bp.Economy.BuildCostMass
+            
+            -- Allow units to require more or less mass to level up. Decimal multipliers mean
+            -- faster leveling, >1 mean slower. Doing this here means doing it once instead of every kill.
+            local defaultMult = 1.25
+            self.Sync.myValue = bp.Economy.BuildCostMass * (bp.Veteran.RequirementMult or defaultMult)
         end
         
         self:EnableUnitIntel('NotInitialized', nil)

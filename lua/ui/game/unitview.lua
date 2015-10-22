@@ -315,6 +315,8 @@ function UpdateWindow(info)
         
         -- Control the veterancy stars
         local currentLevel = UnitData[info.entityId].VeteranLevel
+        local massKilled = UnitData[info.entityId].totalMassKilled
+        local myValue = UnitData[info.entityId].myValue
 
         for level = 1, 5 do
             local l = level
@@ -327,15 +329,17 @@ function UpdateWindow(info)
         end
 
         -- Control the veterancy progress bar
-        local progress = UnitData[info.entityId].veterancyProgress
-        if progress then
-            if currentLevel < 5 then
-                controls.vetBar:Show()
-                controls.vetBar:SetValue(progress)
-                local text = UnitData[info.entityId].veterancyProgressText
-                controls.nextVet:SetText(text)
-            else
-                controls.vetBar:Hide()
+        if massKilled and myValue then
+            local progress = math.min(massKilled / myValue, 5) - currentLevel
+            if progress then
+                if currentLevel < 5 then
+                    controls.vetBar:Show()
+                    controls.vetBar:SetValue(progress)
+                    local text = massKilled .. '/' .. (myValue * (currentLevel + 1))
+                    controls.nextVet:SetText(text)
+                else
+                    controls.vetBar:Hide()
+                end
             end
         end
 
