@@ -203,7 +203,8 @@ Unit = Class(moho.unit_methods) {
         -- Set up veterancy
         self.xp = 0
         self.VeteranLevel = 0
-        self.Instigators = {Total = 0}
+        self.Instigators = {}
+        self.totalDamageTaken = 0
         self.techLevel = self:FindTechLevel()
 
         self.debris_Vector = Vector(0, 0, 0)
@@ -1112,7 +1113,7 @@ Unit = Class(moho.unit_methods) {
         -- Keep track of instigators, but only if it is a unit
         if instigator and IsUnit(instigator) then
             self.Instigators[instigator] = (self.Instigators[instigator] or 0) + amount
-            self.Instigators.Total = self.Instigators.Total + amount
+            self.totalDamageTaken = self.totalDamageTaken + amount
         end
     
         local preAdjHealth = self:GetHealth()
@@ -1247,8 +1248,8 @@ Unit = Class(moho.unit_methods) {
         end
 
         -- Notify instigator of kill and spread veterancy
-        if instigator and self.Instigators.Total ~= 0 then
-            self:VeterancyDispersal(self.Instigators.Total)
+        if instigator and self.totalDamageTaken ~= 0 then
+            self:VeterancyDispersal()
         end
 
         ArmyBrains[self:GetArmy()].LastUnitKilledBy = (instigator or self):GetArmy()
@@ -1268,21 +1269,19 @@ Unit = Class(moho.unit_methods) {
     -------------------------------------------------------------------
     
     -- Tell any living instigators that they need to gain some veterancy
-    VeterancyDispersal = function(unitKilled, totalDamage)
+    VeterancyDispersal = function(unitKilled)
         local bp = unitKilled:GetBlueprint()
         local mass = bp.Economy.BuildCostMass
         
         -- Allow units to count for more or less than their real mass if needed.
         mass = mass * (bp.Veteran.ImportanceMult or 1)
-        
+
         for k, damageDealt in unitKilled.Instigators do
-            if k ~= "Total" then
-                -- k should be a unit's entity ID
-                if k and not k.Dead and k.Sync.VeteranLevel ~= 5 then
-                    -- Find the proportion of yourself that each instigator killed
-                    local massKilled = mass * (damageDealt / totalDamage)
-                    k:OnKilledUnit(unitKilled, massKilled)
-                end
+            -- k should be a unit's entity ID
+            if k and not k.Dead and k.Sync.VeteranLevel ~= 5 then
+                -- Find the proportion of yourself that each instigator killed
+                local massKilled = math.floor(mass * (damageDealt / unitKilled.totalDamageTaken))
+                k:OnKilledUnit(unitKilled, massKilled)
             end
         end
     end,
@@ -2013,7 +2012,7 @@ Unit = Class(moho.unit_methods) {
             -- Allow units to require more or less mass to level up. Decimal multipliers mean
             -- faster leveling, >1 mean slower. Doing this here means doing it once instead of every kill.
             local defaultMult = 1.25
-            self.Sync.myValue = bp.Economy.BuildCostMass * (bp.Veteran.RequirementMult or defaultMult)
+            self.Sync.myValue = math.floor(bp.Economy.BuildCostMass * (bp.Veteran.RequirementMult or defaultMult))
         end
         
         self:EnableUnitIntel('NotInitialized', nil)
