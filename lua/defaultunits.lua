@@ -1764,6 +1764,9 @@ AirUnit = Class(MobileUnit) {
 
             if instigator and IsUnit(instigator) then
                 instigator:OnKilledUnit(self)
+                if self.totalDamageTaken ~= 0 then
+                    self:VeterancyDispersal()
+                end
             end
         else
             MobileUnit.OnKilled(self, instigator, type, overkillRatio)
@@ -2341,6 +2344,11 @@ ACUUnit = Class(CommandUnit) {
                 end
             end
             massKilled = massKilled / techIndex()
+            
+            -- Give more weight to killing a unit of high veterancy
+            if unitKilled.Sync.VeteranLevel then
+                massKilled = massKilled * math.max((unitKilled.Sync.VeteranLevel - self.Sync.VeteranLevel), 1)
+            end
             
             self:CalculateVeterancyLevel(massKilled) -- Bails if we've not gone up
         end
