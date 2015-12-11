@@ -25,6 +25,7 @@ local BuffFieldBlueprints = import('/lua/sim/BuffField.lua').BuffFieldBlueprints
 local Wreckage = import('/lua/wreckage.lua')
 local Set = import('/lua/system/setutils.lua')
 local multsTable = import('/lua/sim/BuffDefinitions.lua').MultsTable
+local typeTable = import('/lua/sim/BuffDefinitions.lua').TypeTable
 
 -- Localised global functions for speed. ~10% for single references, ~30% for double (eg table.insert)
 
@@ -1248,7 +1249,7 @@ Unit = Class(moho.unit_methods) {
         end
 
         -- Notify instigator of kill and spread veterancy
-        if instigator and self.totalDamageTaken ~= 0 then
+        if instigator and self.totalDamageTaken ~= 0 and instigator.Sync.VeteranLevel then
             self:VeterancyDispersal()
         end
 
@@ -1277,8 +1278,8 @@ Unit = Class(moho.unit_methods) {
         mass = mass * (bp.Veteran.ImportanceMult or 1)
 
         for k, damageDealt in unitKilled.Instigators do
-            -- k should be a unit's entity ID
-            if k and not k.Dead and k.Sync.VeteranLevel ~= 5 then
+            -- k should be a unit's entity ID. Make sure it's something which can vet, and is not maxed
+            if k and not k.Dead and k.Sync.VeteranLevel and k.Sync.VeteranLevel ~= 5 then
                 -- Find the proportion of yourself that each instigator killed
                 local massKilled = math.floor(mass * (damageDealt / unitKilled.totalDamageTaken))
                 k:OnKilledUnit(unitKilled, massKilled)
@@ -1294,6 +1295,11 @@ Unit = Class(moho.unit_methods) {
     -- Called when this unit kills another. Chiefly responsible for the veterancy system for now.
     OnKilledUnit = function(self, unitKilled, massKilled)
         if not massKilled then return end -- Make sure engine calls aren't passed with massKilled == 0
+        
+        -- Give more weight to killing a unit of high veterancy
+        if unitKilled.Sync.VeteranLevel then
+            massKilled = massKilled * math.max((unitKilled.Sync.VeteranLevel - self.Sync.VeteranLevel), 1)
+        end
         
         if not IsAlly(self:GetArmy(), unitKilled:GetArmy()) then
             self:CalculateVeterancyLevel(massKilled) -- Bails if we've not gone up
@@ -1322,23 +1328,25 @@ Unit = Class(moho.unit_methods) {
     
     BuffVeterancy = function(self)
         -- Create buffs
-        local regenBuff = self:NewCreateVeterancyBuff(self.techLevel, 'VETERANCYREGEN', 'REPLACE', -1, 'RegenPercent')
-        local healthBuff = self:NewCreateVeterancyBuff(self.techLevel, 'VETERANCYMAXHEALTH', 'REPLACE', -1, 'MaxHealth')
+        local regenBuff = self:NewCreateVeterancyBuff(self.techLevel, 'VETERANCYREGEN', 'REPLACE', -1, 'Regen', 'Add')
+        local healthBuff = self:NewCreateVeterancyBuff(self.techLevel, 'VETERANCYMAXHEALTH', 'REPLACE', -1, 'MaxHealth', 'Mult')
         
         -- Apply buffs
         Buff.ApplyBuff(self, regenBuff)
         Buff.ApplyBuff(self, healthBuff)
     end,
 
-    NewCreateVeterancyBuff = function(self, techLevel, buffType, stacks, buffDuration, effectType)
+    NewCreateVeterancyBuff = function(self, techLevel, buffType, stacks, buffDuration, effectType, mathType)
         -- Generate a buffName based on the unit's tech level. This way, once we generate it once,
         -- We can just apply it for any future unit which fits.
         -- Example: TECH1VETERANCYREGEN1
         local vetLevel = self.Sync.VeteranLevel
         
         local buffName = 0
+        local subSection = false
         if buffType == "VETERANCYREGENBOOST" then
-            buffName = techLevel .. buffType
+            subSection = typeTable[self:GetUnitId()] -- Will be 1 through 6
+            buffName = buffName == techLevel .. subSection .. buffType .. vetLevel
         else
             buffName = techLevel .. buffType .. vetLevel
         end
@@ -1348,31 +1356,37 @@ Unit = Class(moho.unit_methods) {
             return buffName
         end
         
-        local multVal = 0
-        if buffType ~= 'VETERANCYREGENBOOST' then
-            multVal = multsTable.buffType[techLevel]
-        elseif buffType == 'VETERANCYMAXHEALTH' then
-            multVal = 1 + ((multsTable.buffType[techLevel] - 1) * vetLevel)
+        -- Each buffType should only ever be allowed to add OR mult, not both.
+        local val = 1
+        if buffType == 'VETERANCYMAXHEALTH' then
+            val = 1 + ((multsTable[buffType][techLevel] - 1) * vetLevel)
         else
-            multVal = multsTable.buffType[techLevel] * vetLevel
+            if subSection == 1 or subSection == 3 then -- Combat or Ship
+                val = multsTable[buffType][techLevel][subSection][vetLevel]
+            elseif subSection == 2 or subSection == 4 then -- Raider or Sub
+                val = multsTable[buffType][techLevel][subSection] * vetLevel
+            elseif subSection == 5 then -- Experimental or sACU
+                val = multsTable[buffType][techLevel][vetLevel]
+            else -- ACU
+                val = multsTable[buffType][techLevel] * vetLevel
+            end
         end
 
         -- This creates a buff into the global bufftable
-        
         -- First, we need to create the Affects section
         local affects = {}
         affects[effectType] = {
-            DoNotFill = false, -- effectType == 'MaxHealth',
+            DoNotFill = effectType == 'MaxHealth',
             Add = 0,
-            Mult = multVal,
+            Mult = 0,
         }
+        affects[effectType][mathType] = val
         
         -- Then fill in the main, global table
         BuffBlueprint {
             Name = buffName,
             DisplayName = buffName,
             BuffType = buffType,
-            AddMults = buffType == 'VETERANCYREGENBOOST',
             Stacks = stacks,
             Duration = buffDuration,
             Affects = affects,
@@ -1383,7 +1397,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     FindTechLevel = function(self)
-        for k, cat in pairs({'TECH1', 'TECH2', 'TECH3', 'EXPERIMENTAL', 'COMMAND'}) do
+        for k, cat in pairs({'TECH1', 'TECH2', 'TECH3', 'EXPERIMENTAL', 'COMMAND', 'SUBCOMMANDER'}) do
             if EntityCategoryContains(ParseEntityCategory(cat), self) then return cat end
         end
     end,
@@ -2002,10 +2016,7 @@ Unit = Class(moho.unit_methods) {
         -- Set up Veterancy tracking here. Avoids needing to check completion later.
         -- Do all this here so we only have to do for things which get completed        
         -- Don't need to track damage for things which cannot attack!
-        -- Currently tracks things which have deathweapons, need to do something about that. -- IceDreamer
-        -- Solution - Since this requires some serious blueprinting to be finalised, when we do that,
-        -- insert 'COMBATANT' as a category for all units with weapons
-        if bp.Weapon then
+        if typeTable[self:GetUnitId()] then
             self.Sync.totalMassKilled = 0
             self.Sync.VeteranLevel = 0
             

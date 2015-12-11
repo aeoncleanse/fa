@@ -181,8 +181,7 @@ function BuffAffectUnit(unit, buffName, instigator, afterRemove)
 
     for atype, vals in buffAffects do
         if atype == 'Health' then
-            --Note: With health we don't actually look at the unit's table because it's an instant happening.  We don't want to overcalculate something as pliable as health.
-
+            -- Note: With health we don't actually look at the unit's table because it's an instant happening.  We don't want to overcalculate something as pliable as health.
             local health = unit:GetHealth()
             local val = ((buffAffects.Health.Add or 0) + health) * (buffAffects.Health.Mult or 1)
             local healthadj = val - health
@@ -404,8 +403,7 @@ function BuffCalculate(unit, buffName, affectType, initialVal, initialBool)
     end
 
     -- Adds are calculated first, then the mults.  May want to expand that later.
-    local returnVal = false
-    returnVal = (initialVal + adds + multsTotal) * mults
+    local returnVal = (initialVal + adds + multsTotal) * mults
 
     return returnVal, bool
 end
