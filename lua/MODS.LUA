@@ -243,6 +243,15 @@ function GetSelectedMods()
             SetPreference('active_mods', ModsFromGamePrefs)
         end
     end
+    
+    -- Remove locked mods from the normal active list if there. Locked supercedes active.
+    local lockedMods = GetLockedMods()
+    for modid in lockedMods do
+        if ModsFromGamePrefs[modid] then
+            ModsFromGamePrefs[modid] = nil
+            SetPreference('active_mods', ModsFromGamePrefs)
+        end
+    end
     return ModsFromGamePrefs
 end
 
@@ -260,6 +269,10 @@ function GetSelectedUIMods()
             return AllMods()[uid].ui_only
         end
     )
+end
+
+function GetLockedMods()
+    return GetPreference('locked_mods') or {}
 end
 
 local function LoadModInfo(filename)

@@ -458,6 +458,7 @@ function RefreshModsList()
 
     mods.selectable = Mods.AllSelectableMods()
     mods.activated = Mods.GetSelectedMods()
+    mods.locked = Mods.GetLockedMods()
     
     -- reset state of mods
     mods.sim.active = {}
@@ -550,7 +551,7 @@ function RefreshModsList()
                         mods.ui.inactive[uid] = mod
                     end
                 end
-            else
+            elseif not mods.locked[uid] then
                 -- check if everyone has sim mod otherwise disable it.
                 if not EveryoneHasMod(uid) then 
                     mod.sort = 'X'
@@ -568,7 +569,21 @@ function RefreshModsList()
                     else
                         mods.sim.inactive[uid] = mod
                     end
-                end 
+                end
+            elseif mods.locked[uid] then
+                if mods.missingDependencies[uid] then
+                    WARN('You are missing dependency for locked mod ' .. mod.title .. '. Aborting featured mode')
+                    mod.tags['DISABLED'] = true
+                    mods.disabled[uid] = mod
+                elseif not EveryoneHasMod(uid) then
+                    WARN('A player is missing a locked mod ' .. mod.title .. '. Aborting featured mode')
+                    mod.tags['DISABLED'] = true
+                    mods.disabled[uid] = mod
+                else
+                    mod.sort = 'LOCKED'
+                    mod.tags['LOCKED'] = true
+                    mods.sim.active[uid] = mod
+                end
             end
         end
     end
@@ -731,20 +746,26 @@ function SortMods()
     table.sort(controlList, function(a,b)
         -- sort mods by active state, then by type and finally by name 
         if mods.activated[a.modInfo.uid] and
-           not mods.activated[b.modInfo.uid] then 
-           return true  
-        elseif not mods.activated[a.modInfo.uid] and 
-                   mods.activated[b.modInfo.uid] then 
-           return false 
-        elseif a.modInfo.sort == 'UI' and 
-               b.modInfo.sort == 'GAME' then 
-           return true 
-        elseif a.modInfo.sort == 'GAME' and 
-               b.modInfo.sort == 'UI' then 
-           return false 
+           not mods.activated[b.modInfo.uid] then
+           return true
+        elseif not mods.activated[a.modInfo.uid] and
+                   mods.activated[b.modInfo.uid] then
+           return false
+        elseif a.modInfo.sort == 'LOCKED' and
+               b.modInfo.sort == 'UI' then
+           return true
+        elseif a.modInfo.sort == 'UI' and
+               b.modInfo.sort == 'LOCKED' then
+           return false
+        elseif a.modInfo.sort == 'UI' and
+               b.modInfo.sort == 'GAME' then
+           return true
+        elseif a.modInfo.sort == 'GAME' and
+               b.modInfo.sort == 'UI' then
+           return false
         else
-            if a.modInfo.sort == b.modInfo.sort then 
-                if a.modInfo.name == b.modInfo.name then 
+            if a.modInfo.sort == b.modInfo.sort then
+                if a.modInfo.name == b.modInfo.name then
                     return tostring(a.modInfo.version) < tostring(b.modInfo.version)  
                 else
                     return string.upper(a.modInfo.title) < string.upper(b.modInfo.title)  
