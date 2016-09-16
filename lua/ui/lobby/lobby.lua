@@ -456,6 +456,7 @@ function Reset()
     availableMods = {}
     selectedUIMods = Mods.GetSelectedUIMods()
     selectedSimMods = Mods.GetSelectedSimMods()
+    lockedMods = Mods.GetLockedMods()
     numOpenSlots = LobbyComm.maxPlayerSlots
     gameInfo = GameInfo.CreateGameInfo(LobbyComm.maxPlayerSlots)
 end
@@ -2358,7 +2359,8 @@ function CreateUI(maxPlayers)
     LayoutHelpers.AtRightTopIn(GUI.GameQualityLabel, GUI.panel, 5, 64)
 
     -- Title Label
-    GUI.titleText = makeLabel(LOC("<LOC lobui_0427>FAF Game Lobby"), 17)
+    local gameMode = Prefs.GetFromCurrentProfile('gameMode') or 'FAF ' .. GameVersion()
+    GUI.titleText = makeLabel(LOCF("<LOC lobui_0427>FAF Game Lobby - %s", gameMode), 17)
     LayoutHelpers.AtLeftTopIn(GUI.titleText, GUI.panel, 5, 20)
 
     -- Rule Label
