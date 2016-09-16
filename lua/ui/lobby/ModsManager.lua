@@ -459,6 +459,7 @@ function RefreshModsList()
     mods.selectable = Mods.AllSelectableMods()
     mods.activated = Mods.GetSelectedMods()
     mods.locked = Mods.GetLockedMods()
+    WARN(repr(mods.locked))
     
     -- reset state of mods
     mods.sim.active = {}
@@ -486,7 +487,10 @@ function RefreshModsList()
         --    end
         --end
         mod.title = GetModNameVersion(mod)
-        if mod.ui_only then
+        WARN('Refreshing for mod ' .. mod.title)
+        if mods.locked[uid] then
+            mod.type = 'LOCKED'
+        elseif mod.ui_only then
             mod.type = 'UI'
         elseif mod.ui_only == false then
             mod.type = 'GAME' 
@@ -552,6 +556,7 @@ function RefreshModsList()
                     end
                 end
             elseif not mods.locked[uid] then
+                WARN('Not mods.locked ' .. mod.title)
                 -- check if everyone has sim mod otherwise disable it.
                 if not EveryoneHasMod(uid) then 
                     mod.sort = 'X'
@@ -571,12 +576,15 @@ function RefreshModsList()
                     end
                 end
             elseif mods.locked[uid] then
+                WARN('mods.locked ' .. mod.title)
                 if mods.missingDependencies[uid] then
                     WARN('You are missing dependency for locked mod ' .. mod.title .. '. Aborting featured mode')
+                    mod.sort = 'X'
                     mod.tags['DISABLED'] = true
                     mods.disabled[uid] = mod
                 elseif not EveryoneHasMod(uid) then
                     WARN('A player is missing a locked mod ' .. mod.title .. '. Aborting featured mode')
+                    mod.sort = 'X'
                     mod.tags['DISABLED'] = true
                     mods.disabled[uid] = mod
                 else
@@ -745,17 +753,17 @@ end
 function SortMods()
     table.sort(controlList, function(a,b)
         -- sort mods by active state, then by type and finally by name 
-        if mods.activated[a.modInfo.uid] and
+        if mods.locked[a.modInfo.uid] and
+            not mods.locked[b.modInfo.uid] then
+            return true
+        elseif not mods.locked[a.modInfo.uid] and
+            mods.locked[b.modInfo.uid] then
+            return false
+        elseif mods.activated[a.modInfo.uid] and
            not mods.activated[b.modInfo.uid] then
            return true
         elseif not mods.activated[a.modInfo.uid] and
-                   mods.activated[b.modInfo.uid] then
-           return false
-        elseif a.modInfo.sort == 'LOCKED' and
-               b.modInfo.sort == 'UI' then
-           return true
-        elseif a.modInfo.sort == 'UI' and
-               b.modInfo.sort == 'LOCKED' then
+           mods.activated[b.modInfo.uid] then
            return false
         elseif a.modInfo.sort == 'UI' and
                b.modInfo.sort == 'GAME' then
@@ -836,8 +844,13 @@ function CreateListElement(parent, modInfo, Pos)
 
     table.insert(controlList, group)
     controlMap[modInfo.uid] = group
-
-    if IsHost or modInfo.ui_only then
+    
+    local lockedMods = Mods.GetLockedMods()
+    if lockedMods[modInfo.uid] then
+        group.type:SetText('Locked')
+    end
+    
+    if (IsHost or modInfo.ui_only) and not lockedMods[modInfo.uid] then
         local uid = modInfo.uid
         group.bg.OnCheck = function(self, checked)
             if checked then

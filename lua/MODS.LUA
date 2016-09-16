@@ -210,11 +210,15 @@ local _mod_cache = nil
 function SetSelectedMods(s)
     if s then
         LOG("MOD LIST SET TO:")
-        for uid,v in s do
+        for uid, v in s do
             LOG("\t" .. tostring(_mod_cache[uid].name) .. "\t(" .. uid .. ")")
         end
+        
+        local lockedMods = GetLockedMods()
+        local activeMods = FilterOutLockedMods(s, lockedMods)
 
-        SetPreference('active_mods', s)
+        SetPreference('active_mods', activeMods)
+        SetPreference('locked_mods', lockedMods)
         UpdateUIMods()
     end
 end
@@ -231,28 +235,29 @@ end
 
 -- Get List of selected mods and check if they still exist.
 function GetSelectedMods()
-    local ModsFromGamePrefs = GetPreference('active_mods') or {}
-    local ModsFromDisk= {}
-    for modid,moddata in AllMods() do
+    local ActiveModPrefs = GetPreference('active_mods') or {}
+    local ModsFromDisk = {}
+    
+    -- Get UIDs from all mods on disk
+    for modid, moddata in AllMods() do
         ModsFromDisk[moddata.uid] = true
     end
-    for modid in ModsFromGamePrefs do
+    
+    -- Filter out any mods not on disk
+    for modid in ActiveModPrefs do
         if not ModsFromDisk[modid] then
             SPEW('Mod ID='..modid..' is selected as active mod, but missing on Disk!')
-            ModsFromGamePrefs[modid] = nil
-            SetPreference('active_mods', ModsFromGamePrefs)
+            ActiveModPrefs[modid] = nil
+            SetPreference('active_mods', ActiveModPrefs)
         end
     end
     
-    -- Remove locked mods from the normal active list if there. Locked supercedes active.
     local lockedMods = GetLockedMods()
-    for modid in lockedMods do
-        if ModsFromGamePrefs[modid] then
-            ModsFromGamePrefs[modid] = nil
-            SetPreference('active_mods', ModsFromGamePrefs)
-        end
-    end
-    return ModsFromGamePrefs
+    
+    -- Filter locked mods out of the active mods table
+    ActiveModPrefs = FilterOutLockedMods(ActiveModPrefs, lockedMods)
+
+    return ActiveModPrefs
 end
 
 function GetSelectedSimMods()
@@ -272,7 +277,34 @@ function GetSelectedUIMods()
 end
 
 function GetLockedMods()
-    return GetPreference('locked_mods') or {}
+    local LockedModPrefs = GetPreference('locked_mods') or {}
+    local ModsFromDisk = {}
+    
+    -- Get UIDs from all mods on disk
+    for modid, moddata in AllMods() do
+        ModsFromDisk[moddata.uid] = true
+    end
+    
+    for modid in LockedModPrefs do
+        if not ModsFromDisk[modid] then
+            SPEW('Mod ID='..modid..' is selected as locked mod, but missing on Disk!')
+            LockedModPrefs[modid] = nil
+            SetPreference('locked_mods', LockedModPrefs)
+        end
+    end
+    
+    return LockedModPrefs
+end
+
+-- Remove locked mods from the normal active list if there. Locked supercedes active.
+function FilterOutLockedMods(active, locked)
+    for modid in locked do
+        if active[modid] then
+            active[modid] = nil
+        end
+    end
+    
+    return active
 end
 
 local function LoadModInfo(filename)

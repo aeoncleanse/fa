@@ -1968,12 +1968,13 @@ local OptionUtils = {
 -- callback when Mod Manager dialog finishes (modlist==nil on cancel)
 -- FIXME: The mod manager should be given a list of game mods set by the host, which
 -- clients can look at but not changed, and which don't get saved in our local prefs.
-function OnModsChanged(simMods, UIMods, ignoreRefresh)
+function OnModsChanged(simMods, UIMods, lockedMods, ignoreRefresh)
+    WARN('OnModsChanged')
     -- We depend upon ModsManager to not allow the user to change mods they shouldn't be able to
     selectedSimMods = simMods
     selectedUIMods = UIMods
 
-    Mods.SetSelectedMods(SetUtils.Union(selectedSimMods, selectedUIMods))
+    Mods.SetSelectedMods(SetUtils.Union(selectedSimMods, selectedUIMods, lockedMods))
     if lobbyComm:IsHost() then
         HostUtils.UpdateMods()
     end
@@ -5541,6 +5542,7 @@ function InitHostUtils()
         -- Update our local gameInfo.GameMods from selected map name and selected mods, then
         -- notify other clients about the change.
         UpdateMods = function(newPlayerID, newPlayerName)
+            WARN('UpdateMods')
             local newmods = {}
             local missingmods = {}
             local blacklistedMods = {}
@@ -5553,12 +5555,21 @@ function InitHostUtils()
 
                 selectedSimMods = SetUtils.Subtract(selectedSimMods, bannedMods)
                 selectedUIMods = SetUtils.Subtract(selectedUIMods, bannedMods)
-                OnModsChanged(selectedSimMods, selectedUIMods)
+                lockedMods = SetUtils.Subtract(lockedMods, bannedMods)
+                OnModsChanged(selectedSimMods, selectedUIMods, lockedMods)
 
                 return
             end
 
             for modId, _ in selectedSimMods do
+                if IsModAvailable(modId) then
+                    newmods[modId] = true
+                else
+                    table.insert(missingmods, modId)
+                end
+            end
+            
+            for modId, _ in lockedMods do
                 if IsModAvailable(modId) then
                     newmods[modId] = true
                 else
