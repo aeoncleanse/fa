@@ -591,6 +591,7 @@ DefaultProjectileWeapon = Class(Weapon) {
         end,
 
         Main = function(self)
+            WARN('Main')
             self.unit:SetBusy(true)
             self:DestroyRecoilManips()
 
@@ -602,6 +603,10 @@ DefaultProjectileWeapon = Class(Weapon) {
             if bp.RackFireTogether == true then
                 numRackFiring = table.getsize(bp.RackBones)
             end
+            
+            if bp.FireAllRacks then
+                numRackFiring = bp.RackSalvoSize
+            end
 
             -- Fork timer counter thread carefully
             if not self:BeenDestroyed() and
@@ -610,6 +615,9 @@ DefaultProjectileWeapon = Class(Weapon) {
                     self:ForkThread(self.RenderClockThread, 1/rof)
                 end
             end
+            
+            WARN('self.CurrentRackSalvoNumber = ' .. self.CurrentRackSalvoNumber)
+            WARN('numRackFiring = ' .. numRackFiring)
 
             -- Most of the time this will only run once, the only time it doesn't is when racks fire together
             while self.CurrentRackSalvoNumber <= numRackFiring and not self.HaltFireOrdered do
@@ -655,19 +663,31 @@ DefaultProjectileWeapon = Class(Weapon) {
                     if self.HaltFireOrdered then
                         continue
                     end
-                    local proj = self:CreateProjectileAtMuzzle(muzzle)
+                    
+                    -- Experimental feature. Do not use this with CountedProjectile. Aimed at allowing a rack to fire multiple
+                    -- salvos for each OnFire() event. For example, to make Fatboy's primary cannons fire two 3-projectile shots
+                    -- in quick succession, separated by the RateOfFire.
+                    if bp.FireAllRacks then
+                        for k, rack in bp.RackBones do
+                            for muzzleNumber, muzzleBone in rack.MuzzleBones do
+                                local proj = self:CreateProjectileAtMuzzle(muzzleBone)
+                            end
+                        end
+                    else
+                        local proj = self:CreateProjectileAtMuzzle(muzzle)
 
-                    -- Decrement the ammo if they are a counted projectile
-                    if proj and not proj:BeenDestroyed() and bp.CountedProjectile == true then
-                        if bp.NukeWeapon == true then
-                            self.unit:NukeCreatedAtUnit()
+                        -- Decrement the ammo if they are a counted projectile
+                        if proj and not proj:BeenDestroyed() and bp.CountedProjectile == true then
+                            if bp.NukeWeapon == true then
+                                self.unit:NukeCreatedAtUnit()
 
-                            -- Generate UI notification for automatic nuke ping
-                            local launchData = { army = self.unit:GetArmy()-1, location = self:GetCurrentTargetPos()}
-                            Sync.NukeLaunchData = launchData
-                            self.unit:RemoveNukeSiloAmmo(1)
-                        else
-                            self.unit:RemoveTacticalSiloAmmo(1)
+                                -- Generate UI notification for automatic nuke ping
+                                local launchData = { army = self.unit:GetArmy()-1, location = self:GetCurrentTargetPos()}
+                                Sync.NukeLaunchData = launchData
+                                self.unit:RemoveNukeSiloAmmo(1)
+                            else
+                                self.unit:RemoveTacticalSiloAmmo(1)
+                            end
                         end
                     end
 
@@ -685,6 +705,11 @@ DefaultProjectileWeapon = Class(Weapon) {
                             self.unit:SetBusy(true)
                         end
                     end
+                    
+                    if bp.FireAllRacks then
+                        WaitSeconds(bp.RackSalvoDelay)
+                    end
+                        
                 end
                 self:PlayFxRackReloadSequence()
 
@@ -700,9 +725,9 @@ DefaultProjectileWeapon = Class(Weapon) {
 
             -- We can fire again after reaching here
             self.HaltFireOrdered = false
-
+            WARN('SFHJLBEFLIJNDE')
             -- Deal with the rack firing sequence
-            if self.CurrentRackSalvoNumber > table.getn(bp.RackBones) then
+            if self.CurrentRackSalvoNumber > table.getn(bp.RackBones) or self.CurrentRackSalvoNumber > bp.RackSalvoSize then
                 self.CurrentRackSalvoNumber = 1
 
                 if bp.RackSalvoReloadTime > 0 then
