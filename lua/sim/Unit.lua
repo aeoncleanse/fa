@@ -1397,7 +1397,8 @@ Unit = Class(moho.unit_methods) {
     end,
 
     FindTechLevel = function(self)
-        for k, cat in pairs({'TECH1', 'TECH2', 'TECH3', 'EXPERIMENTAL', 'COMMAND', 'SUBCOMMANDER'}) do
+        -- Subcommander before TECH3 as they are not mutually exclusive
+        for k, cat in pairs({'TECH1', 'TECH2', 'SUBCOMMANDER', 'TECH3', 'EXPERIMENTAL', 'COMMAND'}) do
             if EntityCategoryContains(ParseEntityCategory(cat), self) then return cat end
         end
     end,
