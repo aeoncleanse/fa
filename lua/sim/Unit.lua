@@ -1249,7 +1249,10 @@ Unit = Class(moho.unit_methods) {
         end
 
         -- Notify instigator of kill and spread veterancy
-        if instigator and self.totalDamageTaken ~= 0 and instigator.Sync.VeteranLevel then
+        -- We prevent any vet spreading if the instigator isn't part of the vet system (EG - Self destruct)
+        -- This is so that you can bring a damaged Experimental back to base, kill, and rebuild, without granting
+        -- instant vet to the enemy army, as well as other obscure reasons
+        if instigator and self.totalDamageTaken ~= 0 and instigator.vetType then
             self:VeterancyDispersal()
         end
 
@@ -1270,19 +1273,19 @@ Unit = Class(moho.unit_methods) {
     -------------------------------------------------------------------
     
     -- Tell any living instigators that they need to gain some veterancy
-    VeterancyDispersal = function(unitKilled)
-        local bp = unitKilled:GetBlueprint()
+    VeterancyDispersal = function(self)
+        local bp = self:GetBlueprint()
         local mass = bp.Economy.BuildCostMass
         
         -- Allow units to count for more or less than their real mass if needed.
         mass = mass * (bp.Veteran.ImportanceMult or 1)
 
-        for k, damageDealt in unitKilled.Instigators do
-            -- k should be a unit's entity ID. Make sure it's something which can vet, and is not maxed
-            if k and not k.Dead and k.Sync.VeteranLevel and k.Sync.VeteranLevel ~= 5 then
+        for unit, damageDealt in self.Instigators do
+            -- Make sure the unit is something which can vet, and is not maxed
+            if unit and not unit.Dead and unit.vetType and unit.Sync.VeteranLevel ~= 5 then
                 -- Find the proportion of yourself that each instigator killed
-                local massKilled = math.floor(mass * (damageDealt / unitKilled.totalDamageTaken))
-                k:OnKilledUnit(unitKilled, massKilled)
+                local massKilled = math.floor(mass * (damageDealt / self.totalDamageTaken))
+                unit:OnKilledUnit(self, massKilled)
             end
         end
     end,
@@ -1297,9 +1300,7 @@ Unit = Class(moho.unit_methods) {
         if not massKilled then return end -- Make sure engine calls aren't passed with massKilled == 0
         
         -- Give more weight to killing a unit of high veterancy
-        if unitKilled.Sync.VeteranLevel then
-            massKilled = massKilled * math.max((unitKilled.Sync.VeteranLevel - self.Sync.VeteranLevel), 1)
-        end
+        massKilled = massKilled * math.max(((unitKilled.Sync.VeteranLevel or 1) - self.Sync.VeteranLevel), 1)
         
         if not IsAlly(self:GetArmy(), unitKilled:GetArmy()) then
             self:CalculateVeterancyLevel(massKilled) -- Bails if we've not gone up
@@ -1339,14 +1340,14 @@ Unit = Class(moho.unit_methods) {
     NewCreateVeterancyBuff = function(self, techLevel, buffType, stacks, buffDuration, effectType, mathType)
         -- Generate a buffName based on the unit's tech level. This way, once we generate it once,
         -- We can just apply it for any future unit which fits.
-        -- Example: TECH1VETERANCYREGEN1
+        -- Example: TECH13VETERANCYREGEN1
         local vetLevel = self.Sync.VeteranLevel
         
-        local buffName = 0
-        local subSection = false
-        if buffType == "VETERANCYREGENBOOST" then
-            subSection = typeTable[self:GetUnitId()] -- Will be 1 through 6
-            buffName = buffName == techLevel .. subSection .. buffType .. vetLevel
+        local buffName
+        local subSection
+        if buffType == "VETERANCYREGEN" then
+            subSection = self.vetType -- Will be 1 through 7
+            buffName = techLevel .. subSection .. buffType .. vetLevel
         else
             buffName = techLevel .. buffType .. vetLevel
         end
@@ -1359,7 +1360,7 @@ Unit = Class(moho.unit_methods) {
         -- Each buffType should only ever be allowed to add OR mult, not both.
         local val = 1
         if buffType == 'VETERANCYMAXHEALTH' then
-            val = 1 + ((multsTable[buffType][techLevel] - 1) * vetLevel)
+            val = 1 + (multsTable[buffType][techLevel] * vetLevel)
         else
             if subSection == 1 or subSection == 3 then -- Combat or Ship
                 val = multsTable[buffType][techLevel][subSection][vetLevel]
@@ -1367,8 +1368,11 @@ Unit = Class(moho.unit_methods) {
                 val = multsTable[buffType][techLevel][subSection] * vetLevel
             elseif subSection == 5 then -- Experimental or sACU
                 val = multsTable[buffType][techLevel][vetLevel]
-            else -- ACU
+            elseif subSection == 6 then -- ACU
                 val = multsTable[buffType][techLevel] * vetLevel
+            else
+                WARN('Nonstandard unit detected in veterancy system, possibly from a mod. Defaulting to T1 Land Raider')
+                val = multsTable[buffType][TECH1][2] * vetLevel
             end
         end
 
@@ -1397,8 +1401,8 @@ Unit = Class(moho.unit_methods) {
     end,
 
     FindTechLevel = function(self)
-        -- Subcommander before TECH3 as they are not mutually exclusive
-        for k, cat in pairs({'TECH1', 'TECH2', 'SUBCOMMANDER', 'TECH3', 'EXPERIMENTAL', 'COMMAND'}) do
+        -- Put special cases first despite the inefficiency to cater to awkward category combinations (sACU for example)
+        for k, cat in pairs({'EXPERIMENTAL', 'SUBCOMMANDER', 'COMMAND', 'TECH1', 'TECH2', 'TECH3'}) do
             if EntityCategoryContains(ParseEntityCategory(cat), self) then return cat end
         end
     end,
@@ -2006,6 +2010,34 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- Returns a number from 1 - 7 depending on what type of vet this unit should use, or false to exclude it
+    ShouldUseVetSystem = function(self)
+        local vetType = typeTable[self:GetUnitId()]
+
+        -- Handle the easy case: This unit is on the main list
+        if vetType then
+            return vetType
+        else
+            local weps = self:GetBlueprint().Weapon
+
+            -- Bail if we don't have any weapons
+            if not weps[1] then
+                return false
+            end
+
+            -- Find a weapon which is not a DeathWeapon
+            for index, wep in weps do
+                if wep.Label ~= 'DeathWeapon' then
+                    vetType = 7
+                    return vetType
+                end
+            end
+
+            -- We only have a DeathWeapon. Bail.
+            return false
+        end
+    end,
+
     OnStopBeingBuilt = function(self, builder, layer)
         if self.Dead or self:BeenDestroyed() then -- Sanity check, can prevent strange shield bugs and stuff
             self:Kill()
@@ -2017,7 +2049,9 @@ Unit = Class(moho.unit_methods) {
         -- Set up Veterancy tracking here. Avoids needing to check completion later.
         -- Do all this here so we only have to do for things which get completed        
         -- Don't need to track damage for things which cannot attack!
-        if typeTable[self:GetUnitId()] then
+        self.vetType = self:ShouldUseVetSystem()
+
+        if self.vetType then
             self.Sync.totalMassKilled = 0
             self.Sync.VeteranLevel = 0
             
@@ -3803,7 +3837,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     -------------------------------------------------------------------------------------------
-    -- VETERANCY
+    -- OLD VETERANCY - (These functions are defunct as of introduction of mass-vet)
     -------------------------------------------------------------------------------------------
     AddXP = function(self, amount)
         self.xp = self.xp + (amount)

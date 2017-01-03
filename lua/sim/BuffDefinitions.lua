@@ -31,13 +31,14 @@ MultsTable = {
         COMMAND = 5,
         SUBCOMMANDER = {4, 12, 24, 40, 60},
     },
+    -- These are stored as 0.X, but the end multiplier is actually MaxHealth * 1.Y, where Y is (X * VetLevel)
     VETERANCYMAXHEALTH = {
-        TECH1 = 1.2,
-        TECH2 = 1.2,
-        TECH3 = 1.2,
-        EXPERIMENTAL = 1.2,
-        COMMAND = 1.2,
-        SUBCOMMANDER = 1.2,
+        TECH1 = 0.2,
+        TECH2 = 0.2,
+        TECH3 = 0.2,
+        EXPERIMENTAL = 0.2,
+        COMMAND = 0.2,
+        SUBCOMMANDER = 0.2,
     },
 }
 
@@ -296,10 +297,12 @@ TypeTable = {
     uel0202 = 1,
     url0202 = 1,
     xsl0202 = 1,
+    xrl0302 = 1, -- Fire Beetle
     ual0303 = 1,
     xel0305 = 1,
     xrl0305 = 1,
     xsl0303 = 1,
+    xel0209 = 2, --sparky
     -- T2 F/B
     dea0202 = 1,
     dra0202 = 1,
