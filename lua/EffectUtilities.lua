@@ -1,12 +1,9 @@
---****************************************************************************
---**
---**  File     :  /lua/EffectUtilities.lua
---**  Author(s):  Gordon Duclos
---**
---**  Summary  :  Effect Utility functions for scripts.
---**
---**  Copyright © 2006 Gas Powered Games, Inc.  All rights reserved.
---****************************************************************************
+-----------------------------------------------------------------
+-- File     :  /lua/EffectUtilities.lua
+-- Author(s):  Gordon Duclos
+-- Summary  :  Effect Utility functions for scripts.
+-- Copyright © 2006 Gas Powered Games, Inc.  All rights reserved.
+-----------------------------------------------------------------
 
 local util = import('utilities.lua')
 local Entity = import('/lua/sim/Entity.lua').Entity
@@ -420,10 +417,11 @@ function SpawnBuildBots( builder, unitBeingBuilt, BuildEffectsBag)
     if not builder.buildBots then
         builder.buildBots = {}
     end
+
 	local builderArmy = builder:GetArmy()
     local unitBeingBuiltArmy = unitBeingBuilt:GetArmy()
 
-    --if is new, won't spawn build bots if they might accidentally capture the unit
+    -- If is new, won't spawn build bots if they might accidentally capture the unit
 	if builderArmy == unitBeingBuiltArmy or IsHumanUnit(unitBeingBuilt) then
         for k, b in builder.buildBots do
             if b:BeenDestroyed() then
@@ -446,8 +444,8 @@ function SpawnBuildBots( builder, unitBeingBuilt, BuildEffectsBag)
             -- Launch projectiles at semi-random angles away from the sphere, with enough
             -- initial velocity to escape sphere core
             for i = 0, (numUnits - 1) do
-                xVec = math.sin(angleInitial + (i*angle)) * VecMul
-                zVec = math.cos(angleInitial + (i*angle)) * VecMul
+                xVec = math.sin(angleInitial + (i * angle)) * VecMul
+                zVec = math.cos(angleInitial + (i * angle)) * VecMul
                 local bot = CreateUnit('ura0001', builderArmy, x + xVec, y + yVec, z + zVec, qx, qy, qz, qw, 'Air' )
 
                 -- Make build bots unkillable
@@ -1808,10 +1806,10 @@ function PlayTeleportInEffects(unit, EffectsBag)
                 for k, v in EffectTemplate.SeraphimTeleportIn02 do
                     CreateEmitterAtEntity(unit, army, v):OffsetEmitter(0, Yoffset, 0)
                 end
-                
+
                 CreateTeleSteamFX(unit)
             end
-            
+
             local thread = unit:ForkThread(fn)
         else
             local templ = unit.TeleportInFxOverride or EffectTemplate.GenericTeleportIn01

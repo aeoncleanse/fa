@@ -1855,10 +1855,8 @@ function AddObjective(Type,         -- 'primary', 'bonus', etc
             end
         end
 
-        if Target.Unit then
-            if Target.Unit.IsDead and not Target.Unit:IsDead() then
-                objective:AddUnitTarget(Target.Unit)
-            end
+        if Target.Unit and not Target.Unit.Dead then
+            objective:AddUnitTarget(Target.Unit)
         end
 
         if Target.Areas then

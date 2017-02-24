@@ -160,11 +160,11 @@ function OverrideDoDamage(self, instigator, amount, vector, damageType)
     end
 end
 
-function UnlockAndKillUnitThread( self, instigator, damageType, excessDamageRatio )
+function UnlockAndKillUnitThread(self, instigator, damageType, excessDamageRatio)
     self:DoUnitCallbacks('OnKilled')
     WaitSeconds(2)
     self:SetCanBeKilled(true)
-    self:Kill( instigator, damageType, excessDamageRatio )
+    self:Kill(instigator, damageType, excessDamageRatio)
 end
 
 function OverrideKilled(self, instigator, type, overkillRatio)
@@ -1630,21 +1630,20 @@ function StartOperationJessZoomThread( areaName, callbackFunction, duration )
 end
 
 function EndOperationSafety( units )
-
     ScenarioInfo.OpEnded = true
-    ResetUITimer() -- turn off any timer going (per Ted)
+    ResetUITimer() -- Turn off any timer going (per Ted)
 
-    for k,v in ArmyBrains do
+    for k, v in ArmyBrains do
         for subk, subv in ArmyBrains do
-            if not IsAlly( k, subk ) then
-                SetAlliance( v.Name, subv.Name, 'Neutral' )
+            if not IsAlly(k, subk) then
+                SetAlliance(v.Name, subv.Name, 'Neutral')
             end
         end
-        for subk, subv in v:GetListOfUnits( categories.COMMAND, false ) do
+        for subk, subv in v:GetListOfUnits(categories.COMMAND, false) do
             subv:SetCanTakeDamage(false)
             subv:SetCanBeKilled(false)
         end
-        if units and table.getn( units ) > 0 then
+        if units and table.getn(units) > 0 then
             for subk, subv in units do
                 if not subv.Dead then
                     subv:SetCanTakeDamage(false)
@@ -1933,8 +1932,8 @@ function OnPostLoad()
     end
 end
 
-function FlagUnkillableSelect( armyNumber, units )
-    for k,v in units do
+function FlagUnkillableSelect(armyNumber, units)
+    for k, v in units do
         if not v.Dead and v:GetAIBrain():GetArmyIndex() == armyNumber then
             if not v.CanTakeDamage then
                 v.UndamagableFlagSet = true
@@ -1948,9 +1947,9 @@ function FlagUnkillableSelect( armyNumber, units )
     end
 end
 
-function FlagUnkillable( armyNumber, exceptions )
-    local units = ArmyBrains[armyNumber]:GetListOfUnits( categories.ALLUNITS, false )
-    for k,v in units do
+function FlagUnkillable(armyNumber, exceptions)
+    local units = ArmyBrains[armyNumber]:GetListOfUnits(categories.ALLUNITS, false)
+    for k, v in units do
         if not v.CanTakeDamage then
             v.UndamagableFlagSet = true
         end
@@ -1961,7 +1960,7 @@ function FlagUnkillable( armyNumber, exceptions )
         v:SetCanBeKilled(false)
     end
     if exceptions then
-        for k,v in exceptions do
+        for k, v in exceptions do
             -- Only process units that weren't already set
             if not v.UnKillableFlagSet then
                 v:SetCanBeKilled(true)
@@ -1973,9 +1972,9 @@ function FlagUnkillable( armyNumber, exceptions )
     end
 end
 
-function UnflagUnkillable( armyNumber )
-    local units = ArmyBrains[armyNumber]:GetListOfUnits( categories.ALLUNITS, false )
-    for k,v in units do
+function UnflagUnkillable(armyNumber)
+    local units = ArmyBrains[armyNumber]:GetListOfUnits(categories.ALLUNITS, false)
+    for k, v in units do
         -- Only revert units that weren't already set
         if not v.UnKillableFlagSet then
             v:SetCanBeKilled(true)
