@@ -9,6 +9,12 @@
 local Entity = import('/lua/sim/Entity.lua').Entity
 local EffectTemplate = import('/lua/EffectTemplates.lua')
 local explosion = import('/lua/defaultexplosions.lua')
+local utilities = import('/lua/utilities.lua')
+local ApplyBuff = import('/lua/sim/buff.lua').ApplyBuff
+local ApplyCheatBuffs = import('/lua/ai/aiutilities.lua').ApplyCheatBuffs
+local BuffFieldBlueprints = import('/lua/sim/BuffField.lua').BuffFieldBlueprints
+local wreckageCreateWreckage = import('/lua/wreckage.lua').CreateWreckage
+local setEmpty = import('/lua/system/setutils.lua').Empty
 
 local EffectUtilities = import('/lua/EffectUtilities.lua')
 local CleanupEffectBag = EffectUtilities.CleanupEffectBag
@@ -18,19 +24,11 @@ local GetConstructEconomyModel = import('/lua/game.lua').GetConstructEconomyMode
 local IsRestricted = import('/lua/game.lua').IsRestricted
 local VeteranDefault = import('/lua/game.lua').VeteranDefault
 
-
-local utilities = import('/lua/utilities.lua')
 local Shield = import('/lua/shield.lua').Shield
 local PersonalBubble = import('/lua/shield.lua').PersonalBubble
 local TransportShield = import('/lua/shield.lua').TransportShield
 local PersonalShield = import('/lua/shield.lua').PersonalShield
 local AntiArtilleryShield = import('/lua/shield.lua').AntiArtilleryShield
-
-local Buff = import('/lua/sim/buff.lua')
-local AIUtils = import('/lua/ai/aiutilities.lua')
-local BuffFieldBlueprints = import('/lua/sim/BuffField.lua').BuffFieldBlueprints
-local Wreckage = import('/lua/wreckage.lua')
-local Set = import('/lua/system/setutils.lua')
 
 -- TODO: We should really introduce a veterancy module at some point.
 -- XP gained for killing various unit types.
@@ -257,7 +255,7 @@ Unit = Class(moho.unit_methods) {
 
         -- Cheating
         if self:GetAIBrain().CheatEnabled then
-            AIUtils.ApplyCheatBuffs(self)
+            ApplyCheatBuffs(self)
         end
 
         self.Dead = false
@@ -1415,8 +1413,7 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
-    --Create a unit's wrecked mesh blueprint from its regular mesh blueprint, by changing the shader and albedo
-
+    -- Create a unit's wrecked mesh blueprint from its regular mesh blueprint, by changing the shader and albedo
     CreateWreckage = function (self, overkillRatio)
         if overkillRatio and overkillRatio > 1.0 then
             return
@@ -1458,7 +1455,7 @@ Unit = Class(moho.unit_methods) {
         energy = energy * overkillMultiplier * self:GetFractionComplete()
         time = time * overkillMultiplier
 
-        local prop = Wreckage.CreateWreckage(bp, pos, self:GetOrientation(), mass, energy, time)
+        local prop = wreckageCreateWreckage(bp, pos, self:GetOrientation(), mass, energy, time)
 
         -- Attempt to copy our animation pose to the prop. Only works if
         -- the mesh and skeletons are the same, but will not produce an error if not.
@@ -2323,7 +2320,7 @@ Unit = Class(moho.unit_methods) {
     DisableUnitIntel = function(self, disabler, intel)
         local function DisableOneIntel(disabler, intel)
             local intDisabled = false
-            if Set.Empty(self.IntelDisables[intel]) then
+            if setEmpty(self.IntelDisables[intel]) then
                 self:DisableIntel(intel)
 
                 -- Handle the cloak FX timing
@@ -2364,9 +2361,9 @@ Unit = Class(moho.unit_methods) {
     EnableUnitIntel = function(self, disabler, intel)
         local function EnableOneIntel(disabler, intel)
             local intEnabled = false
-            if self.IntelDisables[intel][disabler] then -- must check for explicit true contained
+            if self.IntelDisables[intel][disabler] then -- Must check for explicit true contained
                 self.IntelDisables[intel][disabler] = nil
-                if Set.Empty(self.IntelDisables[intel]) then
+                if setEmpty(self.IntelDisables[intel]) then
                     self:EnableIntel(intel)
 
                     -- Handle the cloak FX timing
@@ -3654,8 +3651,8 @@ Unit = Class(moho.unit_methods) {
             buffTypes = {'Regen', 'MaxHealth',}
         end
 
-        for k,bType in buffTypes do
-            Buff.ApplyBuff( self, 'Veterancy' .. bType .. level )
+        for k, bType in buffTypes do
+            ApplyBuff(self, 'Veterancy' .. bType .. level)
         end
 
         -- Get any overriding buffs if they exist
@@ -3667,12 +3664,13 @@ Unit = Class(moho.unit_methods) {
                         -- Generate a buff based on the data paseed in
                         local buffName = self:CreateVeterancyBuff(lName, lValue, bType)
                         if buffName then
-                            Buff.ApplyBuff( self, buffName )
+                            ApplyBuff(self, buffName)
                         end
                     end
                 end
             end
         end
+
         self:GetAIBrain():OnBrainUnitVeterancyLevel(self, level)
         self:DoUnitCallbacks('OnVeteran')
     end,
@@ -4038,12 +4036,11 @@ Unit = Class(moho.unit_methods) {
     -- Buff Fields
     InitBuffFields = function(self)
         -- Creates all buff fields
-        local bp = self:GetBlueprint()
-        if self.BuffFields and bp.BuffFields then
+        local bpBuffFields = self:GetBlueprint().BuffFields
+        if self.BuffFields and bpBuffFields then
             for scriptName, field in self.BuffFields do
                 -- Getting buff field blueprint
-
-                local BuffFieldBp = BuffFieldBlueprints[bp.BuffFields[scriptName]]
+                local BuffFieldBp = BuffFieldBlueprints[bpBuffFields[scriptName]]
                 if not BuffFieldBp or type(BuffFieldBp) ~= 'table' then
                     WARN('BuffField: no blueprint data for buff field '..repr(scriptName))
                 else
