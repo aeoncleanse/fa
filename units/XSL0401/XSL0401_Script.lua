@@ -13,6 +13,7 @@ local SDFSinnuntheWeapon = WeaponsFile.SDFSinnuntheWeapon
 local SAAOlarisCannonWeapon = WeaponsFile.SAAOlarisCannonWeapon
 local utilities = import('/lua/utilities.lua')
 local explosion = import('/lua/defaultexplosions.lua')
+local CreateBuildEffects = import('/lua/EffectUtilities.lua').CreateSeraphimExperimentalBuildBaseThread
 local CreateUnitDestructionDebris = import('/lua/EffectUtilities.lua').CreateUnitDestructionDebris
 
 XSL0401 = Class(SWalkingLandUnit) {
@@ -56,7 +57,7 @@ XSL0401 = Class(SWalkingLandUnit) {
 
     StartBeingBuiltEffects = function(self, builder, layer)
         SWalkingLandUnit.StartBeingBuiltEffects(self, builder, layer)
-        self:ForkThread(EffectUtil.CreateSeraphimExperimentalBuildBaseThread, builder, self.OnBeingBuiltEffectsBag)
+        self:ForkThread(CreateBuildEffects, builder, self.OnBeingBuiltEffectsBag)
     end,
 
     DeathThread = function(self, overkillRatio , instigator)
@@ -68,7 +69,7 @@ XSL0401 = Class(SWalkingLandUnit) {
                                 'Left_Leg_B17', 'Left_Leg_B14', 'Left_Leg_B15'}
 
         explosion.CreateDefaultHitExplosionAtBone(self, bigExplosionBones[Random(1, 3)], 4.0)
-        explosion.CreateDebrisProjectiles(self, explosion.GetAverageBoundingXYZRadius(self), {self:GetUnitSizes()})           
+        explosion.CreateDebrisProjectiles(self, explosion.GetAverageBoundingXYZRadius(self), {self:GetUnitSizes()})
         WaitSeconds(2)
 
         local RandBoneIter = RandomIter(explosionBones)
@@ -86,7 +87,8 @@ XSL0401 = Class(SWalkingLandUnit) {
             end
         end
         WaitSeconds(3.5)
-        explosion.CreateDefaultHitExplosionAtBone(self, 'Torso', 5.0)        
+
+        explosion.CreateDefaultHitExplosionAtBone(self, 'Torso', 5.0)
 
         if self.DeathAnimManip then
             WaitFor(self.DeathAnimManip)
