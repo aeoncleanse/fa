@@ -1014,10 +1014,12 @@ Unit = Class(moho.unit_methods) {
             if self.WorkItem then -- Enhancement
                 targetData = self.WorkItem
             elseif focus then -- Handling upgrades
+                local originalBuilder = focus.originalBuilder
+
                 if self:IsUnitState('Upgrading') then
-                    baseData = self:GetBlueprint().Economy --Upgrading myself, substract ev. baseCost
-                elseif focus.originalBuilder and not focus.originalBuilder.Dead and focus.originalBuilder:IsUnitState('Upgrading') and focus.originalBuilder:GetFocusUnit() == focus then
-                    baseData = focus.originalBuilder:GetBlueprint().Economy
+                    baseData = bpEconomy -- Upgrading myself, subtract ev. baseCost
+                elseif originalBuilder and not originalBuilder.Dead and originalBuilder:IsUnitState('Upgrading') and originalBuilder:GetFocusUnit() == focus then
+                    baseData = originalBuilder:GetBlueprint().Economy
                 end
 
                 if baseData then
