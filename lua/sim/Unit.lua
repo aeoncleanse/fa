@@ -3276,11 +3276,6 @@ Unit = Class(moho.unit_methods) {
         return self.Weapons[label] or import('/lua/sim/Weapon.lua').Weapon
     end,
 
-    --Return the total time in seconds, cost in energy, and cost in mass to build the given target type.
-    GetBuildCosts = function(self, target_bp)
-        return Game.GetConstructEconomyModel(self, target_bp.Economy)
-    end,
-
     SetReclaimTimeMultiplier = function(self, time_mult)
         self.ReclaimTimeMultiplier = time_mult
     end,
