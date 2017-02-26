@@ -15,9 +15,10 @@ local CleanupEffectBag = EffectUtilities.CleanupEffectBag
 local CreateUnitDestructionDebris = EffectUtilities.CreateUnitDestructionDebris
 
 local GetConstructEconomyModel = import('/lua/game.lua').GetConstructEconomyModel
+local IsRestricted = import('/lua/game.lua').IsRestricted
 local VeteranDefault = import('/lua/game.lua').VeteranDefault
 
-local Game = import('/lua/game.lua')
+
 local utilities = import('/lua/utilities.lua')
 local Shield = import('/lua/shield.lua').Shield
 local PersonalBubble = import('/lua/shield.lua').PersonalBubble
@@ -1935,7 +1936,7 @@ Unit = Class(moho.unit_methods) {
         local id = self:GetUnitId()
         local bp = self:GetBlueprint()
         local index = self:GetArmy()
-        if Game.IsRestricted(id, index) then
+        if IsRestricted(id, index) then
             WARN('Unit.OnStopBeingBuilt() Army ' ..index.. ' cannot create restricted unit: ' .. (bp.Description or id))
             if self ~= nil then self:Destroy() end
             return false -- report failure of OnStopBeingBuilt
@@ -2204,7 +2205,7 @@ Unit = Class(moho.unit_methods) {
         local id = built:GetUnitId()
         local bp = built:GetBlueprint()
         local index = self:GetArmy()
-        if Game.IsRestricted(id, index) then
+        if IsRestricted(id, index) then
             WARN('Unit.OnStartBuild() Army ' ..index.. ' cannot build restricted unit: ' .. (bp.Description or id))
             self:OnFailedToBuild() -- don't use: self:OnStopBuild()
             IssueClearFactoryCommands({self})
