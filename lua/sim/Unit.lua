@@ -1000,6 +1000,7 @@ Unit = Class(moho.unit_methods) {
     UpdateConsumptionValues = function(self)
         local energy_rate = 0
         local mass_rate = 0
+        local bpEconomy = self:GetBlueprint().Economy
 
         if self.ActiveConsumption then
             local focus = self:GetFocusUnit()
@@ -1050,12 +1051,11 @@ Unit = Class(moho.unit_methods) {
 
         self:UpdateAssistersConsumption()
 
-        local myBlueprint = self:GetBlueprint()
         if self.MaintenanceConsumption then
-            local mai_energy = (self.EnergyMaintenanceConsumptionOverride or myBlueprint.Economy.MaintenanceConsumptionPerSecondEnergy)  or 0
-            local mai_mass = myBlueprint.Economy.MaintenanceConsumptionPerSecondMass or 0
+            local mai_energy = self.EnergyMaintenanceConsumptionOverride or bpEconomy.MaintenanceConsumptionPerSecondEnergy or 0
+            local mai_mass = bpEconomy.MaintenanceConsumptionPerSecondMass or 0
 
-            --Apply economic bonuses
+            -- Apply economic bonuses
             mai_energy = mai_energy * (100 + self.EnergyModifier) * (self.EnergyMaintAdjMod or 1) * 0.01
             mai_mass = mai_mass * (100 + self.MassModifier) * (self.MassMaintAdjMod or 1) * 0.01
 
@@ -1064,8 +1064,8 @@ Unit = Class(moho.unit_methods) {
         end
 
          -- Apply minimum rates
-        energy_rate = math.max(energy_rate, myBlueprint.Economy.MinConsumptionPerSecondEnergy or 0)
-        mass_rate = math.max(mass_rate, myBlueprint.Economy.MinConsumptionPerSecondMass or 0)
+        energy_rate = math.max(energy_rate, bpEconomy.MinConsumptionPerSecondEnergy or 0)
+        mass_rate = math.max(mass_rate, bpEconomy.MinConsumptionPerSecondMass or 0)
 
         self:SetConsumptionPerSecondEnergy(energy_rate)
         self:SetConsumptionPerSecondMass(mass_rate)
