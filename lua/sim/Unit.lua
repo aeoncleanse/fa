@@ -15,6 +15,7 @@ local CleanupEffectBag = EffectUtilities.CleanupEffectBag
 local CreateUnitDestructionDebris = EffectUtilities.CreateUnitDestructionDebris
 
 local GetConstructEconomyModel = import('/lua/game.lua').GetConstructEconomyModel
+local VeteranDefault = import('/lua/game.lua').VeteranDefault
 
 local Game = import('/lua/game.lua')
 local utilities = import('/lua/utilities.lua')
@@ -3616,7 +3617,7 @@ Unit = Class(moho.unit_methods) {
         if veteranLevel == 0 or veteranLevel > 5 then return end
         local bp = self:GetBlueprint()
         local lvl = 'Level' .. veteranLevel
-        local xp = bp.Veteran[lvl] or import('/lua/game.lua').VeteranDefault[lvl]
+        local xp = bp.Veteran[lvl] or VeteranDefault[lvl]
         if xp then
             self:AddXP(xp)
         else
@@ -3631,7 +3632,7 @@ Unit = Class(moho.unit_methods) {
 
     -- Check to see if we should veteran up.
     CheckVeteranLevel = function(self)
-        local levels = self:GetBlueprint().Veteran or Game.VeteranDefault
+        local levels = self:GetBlueprint().Veteran or VeteranDefault
         local maxLevel = table.getsize(levels)
 
         --We are already at the highest veteran level, return
