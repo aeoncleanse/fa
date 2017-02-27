@@ -176,9 +176,14 @@ ADFTractorClaw = Class(DefaultBeamWeapon) {
             self.Slider:Destroy()
             self.Slider = nil
         end
-        self.unit:DetachAll(self:GetBlueprint().MuzzleSpecial or 0)
-        self:ResetTarget()
-        self.AimControl:SetResetPoseTime(2)
+
+        if not self.unit.Dead then
+            self.unit:DetachAll(self:GetBlueprint().MuzzleSpecial or 0)
+        end
+        if self and not self:BeenDestroyed() then
+            self:ResetTarget()
+            self.AimControl:SetResetPoseTime(2)
+        end
     end,
 }
 
