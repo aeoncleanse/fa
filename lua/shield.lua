@@ -589,13 +589,13 @@ TransportShield = Class(Shield) {
     -- Yes it says contents, but this includes the generating transport too
     SetContentsVulnerable = function(self, canTakeDamage)
         for k, v in self.protectedUnits do
-            k:SetCanTakeDamage(canTakeDamage)
+            k.CanTakeDamage = canTakeDamage
         end
     end,
 
     RemoveProtectedUnit = function(self, unit)
         self.protectedUnits[unit] = nil
-        unit:SetCanTakeDamage(true)
+        unit.CanTakeDamage = true
     end,
 
     AddProtectedUnit = function(self, unit)
@@ -620,7 +620,7 @@ TransportShield = Class(Shield) {
 
         AddProtectedUnit = function(self, unit)
             self.protectedUnits[unit] = true
-            unit:SetCanTakeDamage(false)
+            unit.CanTakeDamage = false
         end
     },
 

@@ -1640,13 +1640,13 @@ function EndOperationSafety( units )
             end
         end
         for subk, subv in v:GetListOfUnits(categories.COMMAND, false) do
-            subv:SetCanTakeDamage(false)
+            subv.CanTakeDamage = false
             subv:SetCanBeKilled(false)
         end
         if units and table.getn(units) > 0 then
             for subk, subv in units do
                 if not subv.Dead then
-                    subv:SetCanTakeDamage(false)
+                    subv.CanTakeDamage = false
                     subv:SetCanBeKilled(false)
                 end
             end
@@ -1941,7 +1941,7 @@ function FlagUnkillableSelect(armyNumber, units)
             if not v:CheckCanBeKilled() then
                 v.UnKillableFlagSet = true
             end
-            v:SetCanTakeDamage(false)
+            v.CanTakeDamage = false
             v:SetCanBeKilled(false)
         end
     end
@@ -1956,7 +1956,7 @@ function FlagUnkillable(armyNumber, exceptions)
         if not v:CheckCanBeKilled() then
             v.UnKillableFlagSet = true
         end
-        v:SetCanTakeDamage(false)
+        v.CanTakeDamage = false
         v:SetCanBeKilled(false)
     end
     if exceptions then
@@ -1966,7 +1966,7 @@ function FlagUnkillable(armyNumber, exceptions)
                 v:SetCanBeKilled(true)
             end
             if not v.UndamagableFlagSet then
-                v:SetCanTakeDamage(true)
+                v.CanTakeDamage = true
             end
         end
     end
@@ -1980,7 +1980,7 @@ function UnflagUnkillable(armyNumber)
             v:SetCanBeKilled(true)
         end
         if not v.UndamagableFlagSet then
-            v:SetCanTakeDamage(true)
+            v.CanTakeDamage = true
         end
         v.KilledFlagSet = nil
         v.DamageFlagSet = nil

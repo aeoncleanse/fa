@@ -15,6 +15,9 @@ local EffectUtil = import('/lua/EffectUtilities.lua')
 
 local minimumLabelMass = 10
 
+-- Deprecated function warning flags
+local SetCanTakeDamageWarning = false
+
 Prop = Class(moho.prop_methods, Entity) {
 
     -- Do not call the base class __init and __post_init, we already have a c++ object
@@ -58,7 +61,7 @@ Prop = Class(moho.prop_methods, Entity) {
         local max = math.max(50, bp.Defense.MaxHealth)
         self:SetMaxHealth(max)
         self:SetHealth(self, max)
-        self:SetCanTakeDamage(not EntityCategoryContains(categories.INVULNERABLE, self))
+        self.CanTakeDamage = not EntityCategoryContains(categories.INVULNERABLE, self)
         self:SetCanBeKilled(true)
     end,
 
@@ -93,12 +96,6 @@ Prop = Class(moho.prop_methods, Entity) {
     -- Returns the cache position of the prop, since it doesn't move, it's a big optimization
     GetCachePosition = function(self)
         return self.CachePosition or self:GetPosition()
-    end,
-
-    -- Sets if the unit can take damage.  val = true means it can take damage.
-    -- val = false means it can't take damage
-    SetCanTakeDamage = function(self, val)
-        self.CanTakeDamage = val
     end,
 
     -- Sets if the unit can be killed.  val = true means it can be killed.
@@ -318,5 +315,16 @@ Prop = Class(moho.prop_methods, Entity) {
 
             return false
         end
+    end,
+
+    SetCanTakeDamage = function(self, val)
+        if not SetCanTakeDamageWarning then
+            WARN("Deprecated function SetCanTakeDamage called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            SetCanTakeDamageWarning = true
+        end
+
+        self.CanTakeDamage = val
     end,
 }
