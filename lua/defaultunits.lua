@@ -24,6 +24,11 @@ local ScenarioFramework = import('/lua/ScenarioFramework.lua')
 local CreateBuildCubeThread = EffectUtil.CreateBuildCubeThread
 local CreateAeonBuildBaseThread = EffectUtil.CreateAeonBuildBaseThread
 
+-- Localized global functions for speed. ~10% for single references, ~30% for double (eg table.insert)
+local GetBlueprint = moho.entity_methods.GetBlueprint
+local HideBone = moho.unit_methods.HideBone
+local ShowBone = moho.unit_methods.ShowBone
+
 local CreateScaledBoom = function(unit, overkill, bone)
     explosion.CreateDefaultHitExplosionAtBone(
         unit,
@@ -2285,6 +2290,98 @@ CommandUnit = Class(WalkingLandUnit) {
         if psm then
             WaitSeconds(6)
             self:SetMesh(bp.Display.MeshBlueprint, true)
+        end
+    end,
+
+    ShowEnhancementBones = function(self)
+        -- Hide and show certain bones based on available enhancements
+        local bpEnh = GetBlueprint(self).Enhancements
+        if bpEnh then
+            for k, enh in bpEnh do
+                if enh.HideBones then
+                    for _, bone in enh.HideBones do
+                        HideBone(self, bone, true)
+                    end
+                elseif self:HasEnhancement(k) and enh.ShowBones then
+                    for _, bone in enh.ShowBones do
+                        ShowBone(self, bone, true)
+                    end
+                end
+            end
+        end
+    end,
+}
+
+SupportCommander = Class(CommandUnit) {
+    OnStopBeingBuilt = function(self, builder, layer)
+        CommandUnit.OnStopBeingBuilt(self, builder, layer)
+
+        if GetBlueprint(self).EnhancementPresetAssigned then
+            self:ForkThread(self.CreatePresetEnhancementsThread)
+        end
+    end,
+
+    OnCreate = function(self)
+        CommandUnit.OnCreate(self)
+        self:ShowPresetEnhancementBones()
+    end,
+
+    -- Called only on creation. Hide bones not involved in the preset enhancements
+    -- Visual enhancement to show the contours of the unit being built, including upgrade bones
+    ShowPresetEnhancementBones = function(self)
+        local bp = GetBlueprint(self)
+        local bpEnh = bp.Enhancements
+
+        if bpEnh and (bp.CategoriesHash.USEBUILDPRESETS or bp.CategoriesHash.ISPREENHANCEDUNIT) then
+            -- Create a blank slate: Hide all enhancement bones as specified in the unit BP
+            for k, enh in bpEnh do
+                if enh.HideBones then
+                    for _, bone in enh.HideBones do
+                        HideBone(self, bone, true)
+                    end
+                end
+            end
+
+            -- For the barebone version we're done here. For the presets versions: show the bones of the enhancements we'll create later on
+            if bp.EnhancementPresetAssigned then
+                for k, v in bp.EnhancementPresetAssigned.Enhancements do
+                    -- First show all relevant bones
+                    if bpEnh[v] and bpEnh[v].ShowBones then
+                        for _, bone in bpEnh[v].ShowBones do
+                            ShowBone(self, bone, true)
+                        end
+                    end
+
+                    -- Now hide child bones of previously revealed bones, that should remain hidden
+                    if bpEnh[v] and bpEnh[v].HideBones then
+                        for _, bone in bpEnh[v].HideBones do
+                            HideBone(self, bone, true)
+                        end
+                    end
+                end
+            end
+        end
+    end,
+
+    CreatePresetEnhancements = function(self)
+        local bp = GetBlueprint(self)
+        if bp.Enhancements and bp.EnhancementPresetAssigned and bp.EnhancementPresetAssigned.Enhancements then
+            for k, v in bp.EnhancementPresetAssigned.Enhancements do
+                -- Enhancements may already have been created by SimUtils.TransferUnitsOwnership
+                if not self:HasEnhancement(v) then
+                    self:CreateEnhancement(v)
+                end
+            end
+        end
+    end,
+
+    -- Creating the preset enhancements on SCUs after they've been constructed. Delaying this by 1 tick to fix a problem where cloak and
+    -- stealth enhancements work incorrectly.
+    CreatePresetEnhancementsThread = function(self)
+        WaitTicks(1)
+
+        if self and not self.Dead then
+            self:CreatePresetEnhancements()
         end
     end,
 }
