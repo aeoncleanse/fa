@@ -30,13 +30,22 @@ local TransportShield = import('/lua/shield.lua').TransportShield
 local PersonalShield = import('/lua/shield.lua').PersonalShield
 local AntiArtilleryShield = import('/lua/shield.lua').AntiArtilleryShield
 
--- Localized global functions for speed
+-- Localized global functions for speed. ~10% for single references, ~30% for double (eg table.insert)
 local tableInsert = table.insert
 local tableRemove = table.remove
 local tableGetn = table.getn
 local tableGetSize = table.getsize
 local tableEmpty = table.empty
 local tableDeepCopy = table.deepcopy
+
+local mathMax = math.max
+local mathMin = math.min
+local mathATan2 = math.atan2
+local mathAbs = math.abs
+local mathFloor = math.floor
+local mathCos = math.cos
+local mathSin = math.sin
+local mathPi = math.pi
 
 local EntityCategoryContains = EntityCategoryContains
 local ParseEntityCategory = ParseEntityCategory
@@ -333,7 +342,7 @@ Unit = Class(moho.unit_methods) {
 
     GetFootPrintSize = function(self)
         local fp = GetBlueprint(self).Footprint
-        return math.max(fp.SizeX, fp.SizeZ)
+        return mathMax(fp.SizeX, fp.SizeZ)
     end,
 
     --Returns 4 numbers: skirt x0, skirt z0, skirt.x1, skirt.z1
@@ -362,8 +371,8 @@ Unit = Class(moho.unit_methods) {
         local rx = Random() * sx - (sx * 0.5)
         local y  = Random() * sy + (GetBlueprint(self).CollisionOffsetY or 0)
         local rz = Random() * sz - (sz * 0.5)
-        local x = math.cos(heading) * rx - math.sin(heading) * rz
-        local z = math.sin(heading) * rx - math.cos(heading) * rz
+        local x = mathCos(heading) * rx - mathSin(heading) * rz
+        local z = mathSin(heading) * rx - mathCos(heading) * rz
 
         return x, y, z
     end,
@@ -1005,7 +1014,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     GetBuildRate = function(self)
-        return math.max( moho.unit_methods.GetBuildRate(self), 0.00001) -- make sure we're never returning 0, this value will be used to divide with
+        return mathMax( moho.unit_methods.GetBuildRate(self), 0.00001) -- make sure we're never returning 0, this value will be used to divide with
     end,
 
     UpdateAssistersConsumption = function(self)
@@ -1081,8 +1090,8 @@ Unit = Class(moho.unit_methods) {
                 end
             end
 
-            energy = math.max(1, energy * (self.EnergyBuildAdjMod or 1))
-            mass = math.max(1, mass * (self.MassBuildAdjMod or 1))
+            energy = mathMax(1, energy * (self.EnergyBuildAdjMod or 1))
+            mass = mathMax(1, mass * (self.MassBuildAdjMod or 1))
             energy_rate = energy / time
             mass_rate = mass / time
         end
@@ -1102,8 +1111,8 @@ Unit = Class(moho.unit_methods) {
         end
 
          -- Apply minimum rates
-        energy_rate = math.max(energy_rate, bpEconomy.MinConsumptionPerSecondEnergy or 0)
-        mass_rate = math.max(mass_rate, bpEconomy.MinConsumptionPerSecondMass or 0)
+        energy_rate = mathMax(energy_rate, bpEconomy.MinConsumptionPerSecondEnergy or 0)
+        mass_rate = mathMax(mass_rate, bpEconomy.MinConsumptionPerSecondMass or 0)
 
         self:SetConsumptionPerSecondEnergy(energy_rate)
         self:SetConsumptionPerSecondMass(mass_rate)
@@ -1533,7 +1542,7 @@ Unit = Class(moho.unit_methods) {
             local toSurface = surfaceHeight - boneHeight
             local y = toSurface
             local rx, ry, rz = self:GetRandomOffset(0.3)
-            local rs = math.max(math.min(2.5, vol / 20), 0.5)
+            local rs = mathMax(mathMin(2.5, vol / 20), 0.5)
             local scale = Util.GetRandomFloat(rs/2, rs)
 
             self:DestroyAllDamageEffects()
@@ -1573,7 +1582,7 @@ Unit = Class(moho.unit_methods) {
 
         -- Start the sinking after a delay of the given number of seconds, attaching to a given bone
         -- and entity.
-        proj:Start(10 * math.max(2, math.min(7, scale)), self, bone, callback)
+        proj:Start(10 * mathMax(2, mathMin(7, scale)), self, bone, callback)
         self.Trash:Add(proj)
     end,
 
@@ -1667,7 +1676,7 @@ Unit = Class(moho.unit_methods) {
         self:CreateWreckage(overkillRatio or self.overkillRatio)
 
         -- wait at least 1 tick before destroying unit
-        WaitSeconds(math.max(0.1, self.DeathThreadDestructionWaitTime))
+        WaitSeconds(mathMax(0.1, self.DeathThreadDestructionWaitTime))
 
         self:Destroy()
     end,
@@ -1839,16 +1848,16 @@ Unit = Class(moho.unit_methods) {
 
     Rotate = function(self, angle)
         local qx, qy, qz, qw = unpack(self:GetOrientation())
-        local a = math.atan2(2.0*(qx*qz + qw*qy), qw*qw + qx*qx - qz*qz - qy*qy)
-        local current_yaw = math.floor(math.abs(a) * (180 / math.pi) + 0.5)
+        local a = mathATan2(2.0*(qx*qz + qw*qy), qw*qw + qx*qx - qz*qz - qy*qy)
+        local current_yaw = mathFloor(mathAbs(a) * (180 / mathPi) + 0.5)
 
         self:SetRotation(angle + current_yaw)
     end,
 
     RotateTowards = function(self, tpos)
         local pos = self:GetPosition()
-        local rad = math.atan2(tpos[1]-pos[1], tpos[3]-pos[3])
-        self:SetRotation(rad * (180 / math.pi))
+        local rad = mathATan2(tpos[1]-pos[1], tpos[3]-pos[3])
+        self:SetRotation(rad * (180 / mathPi))
     end,
 
     RotateTowardsMid = function(self)
@@ -2712,7 +2721,7 @@ Unit = Class(moho.unit_methods) {
     CreateEnhancementEffects = function( self, enhancement )
         local bp = GetBlueprint(self).Enhancements[enhancement]
         local effects = TrashBag()
-        local scale = math.min(4, math.max(1, (bp.BuildCostEnergy / bp.BuildTime or 1) / 50))
+        local scale = mathMin(4, mathMax(1, (bp.BuildCostEnergy / bp.BuildTime or 1) / 50))
 
         if bp.UpgradeEffectBones then
             for k, v in bp.UpgradeEffectBones do
@@ -3330,7 +3339,7 @@ Unit = Class(moho.unit_methods) {
             end
 
             time = time * (self.ReclaimTimeMultiplier or 1)
-            time = math.max( (time/10), 0.0001)  --This should never be 0 or we'll divide by 0
+            time = mathMax( (time/10), 0.0001)  --This should never be 0 or we'll divide by 0
             return time, target_bp.Economy.BuildCostEnergy, target_bp.Economy.BuildCostMass
 
         elseif IsProp(target_entity) then
