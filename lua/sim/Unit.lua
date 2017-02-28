@@ -1145,10 +1145,6 @@ Unit = Class(moho.unit_methods) {
         self.CanTakeDamage = val
     end,
 
-    CheckCanTakeDamage = function(self)
-        return self.CanTakeDamage
-    end,
-
     OnDamage = function(self, instigator, amount, vector, damageType)
         if self.CanTakeDamage then
             self:DoOnDamagedCallbacks(instigator)
