@@ -59,18 +59,24 @@ local IsAlly = IsAlly
 
 local SetMesh = moho.entity_methods.SetMesh
 local PlaySound = moho.entity_methods.PlaySound
-
 local GetArmy = moho.entity_methods.GetArmy
 local GetBlueprint = moho.entity_methods.GetBlueprint
 local GetEntityId = moho.entity_methods.GetEntityId
 local GetHealth = moho.entity_methods.GetHealth
 local GetMaxHealth = moho.entity_methods.GetMaxHealth
+local IsValidBone = moho.entity_methods.IsValidBone
+local GetPosition = moho.entity_methods.GetPosition
+
 local GetWeapon = moho.unit_methods.GetWeapon
 local GetWeaponCount = moho.unit_methods.GetWeaponCount
 local HideBone = moho.unit_methods.HideBone
 local ShowBone = moho.unit_methods.ShowBone
 local SetProductionActive = moho.unit_methods.SetProductionActive
-local IsValidBone = moho.entity_methods.IsValidBone
+local SetConsumptionPerSecondEnergy = moho.unit_methods.SetConsumptionPerSecondEnergy
+local SetConsumptionPerSecondMass = moho.unit_methods.SetConsumptionPerSecondMass
+local SetProductionPerSecondEnergy = moho.unit_methods.SetProductionPerSecondEnergy
+local SetProductionPerSecondMass = moho.unit_methods.SetProductionPerSecondMass
+local GetCurrentLayer = moho.unit_methods.GetCurrentLayer
 
 local ChangeState = ChangeState
 local ForkThread = ForkThread
@@ -272,10 +278,10 @@ Unit = Class(moho.unit_methods) {
 
         -- Define Economic modifications
         local bpEcon = bp.Economy
-        self:SetConsumptionPerSecondEnergy(bpEcon.MaintenanceConsumptionPerSecondEnergy or 0)
-        self:SetConsumptionPerSecondMass(bpEcon.MaintenanceConsumptionPerSecondMass or 0)
-        self:SetProductionPerSecondEnergy(bpEcon.ProductionPerSecondEnergy or 0)
-        self:SetProductionPerSecondMass(bpEcon.ProductionPerSecondMass or 0)
+        SetConsumptionPerSecondEnergy(self, bpEcon.MaintenanceConsumptionPerSecondEnergy or 0)
+        SetConsumptionPerSecondMass(self, bpEcon.MaintenanceConsumptionPerSecondMass or 0)
+        SetProductionPerSecondEnergy(self, bpEcon.ProductionPerSecondEnergy or 0)
+        SetProductionPerSecondMass(self, bpEcon.ProductionPerSecondMass or 0)
 
         if self.EconomyProductionInitiallyActive then
             SetProductionActive(self, true)
@@ -312,7 +318,7 @@ Unit = Class(moho.unit_methods) {
 
         self:InitBuffFields()
 
-        --Ensure transport slots are available
+        -- Ensure transport slots are available
         self.attachmentBone = nil
 
         -- Set up Adjacency container
@@ -339,7 +345,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     GetCachePosition = function(self)
-        return self:GetPosition()
+        return GetPosition(self)
     end,
 
     GetFootPrintSize = function(self)
@@ -350,7 +356,7 @@ Unit = Class(moho.unit_methods) {
     --Returns 4 numbers: skirt x0, skirt z0, skirt.x1, skirt.z1
     GetSkirtRect = function(self)
         local bp = GetBlueprint(self)
-        local x, y, z = unpack(self:GetPosition())
+        local x, y, z = unpack(GetPosition(self))
         local fx = x - bp.Footprint.SizeX*.5
         local fz = z - bp.Footprint.SizeZ*.5
         local sx = fx + bp.Physics.SkirtOffsetX
@@ -1028,7 +1034,7 @@ Unit = Class(moho.unit_methods) {
             end
         end
 
-        local workers = self:GetAIBrain():GetUnitsAroundPoint(( categories.REPAIR), self:GetPosition(), 50, 'Ally' )
+        local workers = self:GetAIBrain():GetUnitsAroundPoint(( categories.REPAIR), GetPosition(self), 50, 'Ally' )
         for k,v in workers do
             if not v.Dead and v:IsUnitState('Repairing') and v:GetFocusUnit() == self then
                 tableInsert(units, v)
@@ -1116,16 +1122,16 @@ Unit = Class(moho.unit_methods) {
         energy_rate = mathMax(energy_rate, bpEconomy.MinConsumptionPerSecondEnergy or 0)
         mass_rate = mathMax(mass_rate, bpEconomy.MinConsumptionPerSecondMass or 0)
 
-        self:SetConsumptionPerSecondEnergy(energy_rate)
-        self:SetConsumptionPerSecondMass(mass_rate)
+        SetConsumptionPerSecondEnergy(self, energy_rate)
+        SetConsumptionPerSecondMass(self, mass_rate)
         self:SetConsumptionActive(energy_rate > 0 or mass_rate > 0)
     end,
 
     UpdateProductionValues = function(self)
         local bpEcon = GetBlueprint(self).Economy
         if not bpEcon then return end
-        self:SetProductionPerSecondEnergy((bpEcon.ProductionPerSecondEnergy or 0) * (self.EnergyProdAdjMod or 1))
-        self:SetProductionPerSecondMass((bpEcon.ProductionPerSecondMass or 0) * (self.MassProdAdjMod or 1))
+        SetProductionPerSecondEnergy(self, (bpEcon.ProductionPerSecondEnergy or 0) * (self.EnergyProdAdjMod or 1))
+        SetProductionPerSecondMass(self, (bpEcon.ProductionPerSecondMass or 0) * (self.MassProdAdjMod or 1))
     end,
 
     SetEnergyMaintenanceConsumptionOverride = function(self, override)
@@ -1255,7 +1261,7 @@ Unit = Class(moho.unit_methods) {
 
     -- On killed: this function plays when the unit takes a mortal hit. Plays death effects and spawns wreckage, dependant on overkill
     OnKilled = function(self, instigator, type, overkillRatio)
-        local layer = self:GetCurrentLayer()
+        local layer = GetCurrentLayer(self)
         self.Dead = true
 
         -- Units killed while being invisible because they're teleporting should show when they're killed
@@ -1473,8 +1479,8 @@ Unit = Class(moho.unit_methods) {
         local mass = bp.Economy.BuildCostMass * (bp.Wreckage.MassMult or 0)
         local energy = bp.Economy.BuildCostEnergy * (bp.Wreckage.EnergyMult or 0)
         local time = (bp.Wreckage.ReclaimTimeMultiplier or 1)
-        local pos = self:GetPosition()
-        local layer = self:GetCurrentLayer()
+        local pos = GetPosition(self)
+        local layer = GetCurrentLayer(self)
 
         if layer == 'Water' or layer == 'Sub' then
             --Reduce the mass value of submerged wrecks
@@ -1514,7 +1520,7 @@ Unit = Class(moho.unit_methods) {
 
     DeathWeaponDamageThread = function( self , damageRadius, damage, damageType, damageFriendly)
         WaitSeconds( 0.1 )
-        DamageArea(self, self:GetPosition(), damageRadius or 1, damage or 1, damageType or 'Normal', damageFriendly or false)
+        DamageArea(self, GetPosition(self), damageRadius or 1, damage or 1, damageType or 'Normal', damageFriendly or false)
     end,
 
     SinkDestructionEffects = function(self)
@@ -1523,13 +1529,13 @@ Unit = Class(moho.unit_methods) {
         local vol = sx * sy * sz
         local army = GetArmy(self)
         local numBones = self:GetBoneCount() - 1
-        local pos = self:GetPosition()
+        local pos = GetPosition(self)
         local surfaceHeight = GetSurfaceHeight(pos[1], pos[3])
         local i = 0
 
         while i < 1 do
             local randBone = Util.GetRandomInt( 0, numBones)
-            local boneHeight = self:GetPosition(randBone)[2]
+            local boneHeight = GetPosition(self, randBone)[2]
             local toSurface = surfaceHeight - boneHeight
             local y = toSurface
             local rx, ry, rz = self:GetRandomOffset(0.3)
@@ -1578,21 +1584,21 @@ Unit = Class(moho.unit_methods) {
     end,
 
     SeabedWatcher = function(self)
-        local pos = self:GetPosition()
+        local pos = GetPosition(self)
         local seafloor = GetTerrainHeight(pos[1], pos[3]) + GetTerrainTypeOffset(pos[1], pos[3])
         local watchBone = GetBlueprint(self).WatchBone or 0
 
         self.StopSink = false
         while not self.StopSink do
             WaitTicks(2)
-            if self:GetPosition(watchBone)[2]-0.2 <= seafloor then
+            if GetPosition(self, watchBone)[2] - 0.2 <= seafloor then
                 self.StopSink = true
             end
         end
     end,
 
     ShallSink = function(self)
-        local layer = self:GetCurrentLayer()
+        local layer = GetCurrentLayer(self)
         local shallSink = (
             (layer == 'Water' or layer == 'Sub') and  -- In a layer for which sinking is meaningful
             not EntityCategoryContains(categories.STRUCTURE, self)  -- Exclude structures
@@ -1733,8 +1739,8 @@ Unit = Class(moho.unit_methods) {
     end,
 
     HideLandBones = function(self)
-        --Hide the bones for buildings built on land
-        if self.LandBuiltHiddenBones and self:GetCurrentLayer() == 'Land' then
+        -- Hide the bones for buildings built on land
+        if self.LandBuiltHiddenBones and GetCurrentLayer(self) == 'Land' then
             for k, v in self.LandBuiltHiddenBones do
                 if IsValidBone(self, v) then
                     HideBone(self, v, true)
@@ -1846,8 +1852,8 @@ Unit = Class(moho.unit_methods) {
     end,
 
     RotateTowards = function(self, tpos)
-        local pos = self:GetPosition()
-        local rad = mathATan2(tpos[1]-pos[1], tpos[3]-pos[3])
+        local pos = GetPosition(self)
+        local rad = mathATan2(tpos[1] - pos[1], tpos[3]-pos[3])
         self:SetRotation(rad * (180 / mathPi))
     end,
 
@@ -1888,7 +1894,7 @@ Unit = Class(moho.unit_methods) {
         self:EnableUnitIntel('NotInitialized', nil)
         self:ForkThread(self.StopBeingBuiltEffects, builder, layer)
 
-        if self:GetCurrentLayer() == 'Water' then
+        if GetCurrentLayer(self) == 'Water' then
             self:StartRocking()
             local surfaceAnim = bp.Display.AnimationSurface
             if not self.SurfaceAnimator and surfaceAnim then
@@ -1993,7 +1999,7 @@ Unit = Class(moho.unit_methods) {
         if bp then
             if bp.TerrainMeshes then
                 local bpTM = bp.TerrainMeshes
-                local pos = self:GetPosition()
+                local pos = GetPosition(self)
                 local terrainType = GetTerrainType( pos[1], pos[3] )
                 if bpTM[terrainType.Style] then
                     SetMesh(self, bpTM[terrainType.Style])
@@ -2067,7 +2073,7 @@ Unit = Class(moho.unit_methods) {
     --- Look for a wreck of the thing we just started building at the same location. If there is
     -- one, give the rebuild bonus.
     SetRebuildProgress = function(self, unit)
-        local upos = unit:GetPosition()
+        local upos = GetPosition(unit)
         local props = GetReclaimablesInRect(Rect(upos[1], upos[3], upos[1], upos[3]))
         local wreckage = {}
         local bpid = unit:GetUnitId()
@@ -2393,7 +2399,7 @@ Unit = Class(moho.unit_methods) {
             local brain = self:GetAIBrain()
 
             while self and not self.Dead and self:IsIntelEnabled('CloakField') do
-                local pos = self:GetPosition()
+                local pos = GetPosition(self)
                 local units = brain:GetUnitsAroundPoint(categories.ALLUNITS, pos, radius, 'Ally')
 
                 for _, unit in units do
@@ -2714,7 +2720,7 @@ Unit = Class(moho.unit_methods) {
         if self.Dead then
             return
         end
-        local layer = self:GetCurrentLayer()
+        local layer = GetCurrentLayer(self)
 
         if old == 'Stopped' or (old == 'Stopping' and (new == 'Cruise' or new == 'TopSpeed')) then
             -- Try the specialised sound, fall back to the general one.
@@ -2775,7 +2781,7 @@ Unit = Class(moho.unit_methods) {
         if self.Dead then
             return
         end
-        local layer = self:GetCurrentLayer()
+        local layer = GetCurrentLayer(self)
 
         if (new == 'Down') then
             --Play the "landing" sound
@@ -2842,7 +2848,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     OnAnimCollision = function(self, bone, x, y, z)
-        local layer = self:GetCurrentLayer()
+        local layer = GetCurrentLayer(self)
         local bpTable = GetBlueprint(self).Display.MovementEffects
 
         if bpTable[layer].Footfall then
@@ -2855,7 +2861,7 @@ Unit = Class(moho.unit_methods) {
 
             if bpTable.Damage then
                 local bpDamage = bpTable.Damage
-                DamageArea(self, self:GetPosition(bone), bpDamage.Radius, bpDamage.Amount, bpDamage.Type, bpDamage.DamageFriendly )
+                DamageArea(self, GetPosition(self, bone), bpDamage.Radius, bpDamage.Amount, bpDamage.Type, bpDamage.DamageFriendly )
             end
 
             if bpTable.CameraShake then
@@ -2870,13 +2876,13 @@ Unit = Class(moho.unit_methods) {
                     scale = boneTable.Scale or 1
                     offset = bone.Offset
                     if v.Type then
-                        effects = self.GetTerrainTypeEffects( 'FXMovement', layer, self:GetPosition(v.FootBone), v.Type )
+                        effects = self.GetTerrainTypeEffects( 'FXMovement', layer, GetPosition(self, v.FootBone), v.Type )
                     end
                     break
                 end
             end
 
-            if boneTable.Tread and self:GetTTTreadType(self:GetPosition(bone)) ~= 'None' then
+            if boneTable.Tread and self:GetTTTreadType(GetPosition(self, bone)) ~= 'None' then
                 CreateSplatOnBone(self, boneTable.Tread.TreadOffset, 0, boneTable.Tread.TreadMarks, boneTable.Tread.TreadMarksSizeX, boneTable.Tread.TreadMarksSizeZ, 100, boneTable.Tread.TreadLifeTime or 15, army )
                 local treadOffsetX = boneTable.Tread.TreadOffset[1]
                 if x and x > 0 then
@@ -2906,7 +2912,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     UpdateMovementEffectsOnMotionEventChange = function( self, new, old )
-        local layer = self:GetCurrentLayer()
+        local layer = GetCurrentLayer(self)
         local bpMTable = GetBlueprint(self).Display.MovementEffects
 
         if( old == 'TopSpeed' ) then
@@ -2980,7 +2986,7 @@ Unit = Class(moho.unit_methods) {
 
     CreateTerrainTypeEffects = function( self, effectTypeGroups, FxBlockType, FxBlockKey, TypeSuffix, EffectBag, TerrainType )
         local army = GetArmy(self)
-        local pos = self:GetPosition()
+        local pos = GetPosition(self)
         local effects = {}
         local emit
 
@@ -2992,7 +2998,7 @@ Unit = Class(moho.unit_methods) {
             end
 
             if not vTypeGroup.Bones or (vTypeGroup.Bones and (tableGetn(vTypeGroup.Bones) == 0)) then
-                WARN('*WARNING: No effect bones defined for layer group ',repr(self:GetUnitId()),', Add these to a table in Display.[EffectGroup].', self:GetCurrentLayer(), '.Effects { Bones ={} } in unit blueprint.' )
+                WARN('*WARNING: No effect bones defined for layer group ',repr(self:GetUnitId()),', Add these to a table in Display.[EffectGroup].', GetCurrentLayer(self), '.Effects { Bones ={} } in unit blueprint.' )
             else
                 for kb, vBone in vTypeGroup.Bones do
                     for ke, vEffect in effects do
@@ -3010,7 +3016,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     CreateIdleEffects = function( self )
-        local layer = self:GetCurrentLayer()
+        local layer = GetCurrentLayer(self)
         local bpTable = GetBlueprint(self).Display.IdleEffects
         if bpTable[layer] and bpTable[layer].Effects then
             self:CreateTerrainTypeEffects( bpTable[layer].Effects, 'FXIdle',  layer, nil, self.IdleEffectsBag )
@@ -3018,7 +3024,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     CreateMovementEffects = function( self, EffectsBag, TypeSuffix, TerrainType )
-        local layer = self:GetCurrentLayer()
+        local layer = GetCurrentLayer(self)
         local bpTable = GetBlueprint(self).Display.MovementEffects
 
         if bpTable[layer] then
@@ -3055,7 +3061,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     CreateMotionChangeEffects = function( self, new, old )
-        local key = self:GetCurrentLayer()..old..new
+        local key = GetCurrentLayer(self)..old..new
         local bpTable = GetBlueprint(self).Display.MotionChangeEffects[key]
 
         if bpTable then
@@ -3065,7 +3071,7 @@ Unit = Class(moho.unit_methods) {
 
     DestroyMovementEffects = function( self )
         local bpTable = GetBlueprint(self).Display.MovementEffects
-        local layer = self:GetCurrentLayer()
+        local layer = GetCurrentLayer(self)
 
         CleanupEffectBag(self,'MovementEffectsBag')
 
@@ -3175,7 +3181,7 @@ Unit = Class(moho.unit_methods) {
         end
         self.TreadThreads = {}
         if treads.TreadMarks then
-            local type = self:GetTTTreadType(self:GetPosition())
+            local type = self:GetTTTreadType(GetPosition(self))
             if type ~= 'None' then
                 for k, v in treads.TreadMarks do
                     tableInsert( self.TreadThreads, self:ForkThread(self.CreateTreadsThread, v, type ))
@@ -3293,7 +3299,7 @@ Unit = Class(moho.unit_methods) {
                 sndEnt = tableRemove(self.SoundEntities, 1)
             else
                 sndEnt = Entity()
-                Warp(sndEnt, self:GetPosition())
+                Warp(sndEnt, GetPosition(self))
                 sndEnt:AttachTo(self,-1)
                 self.Trash:Add(sndEnt)
             end
@@ -3488,7 +3494,7 @@ Unit = Class(moho.unit_methods) {
             local targets
             if buffTable.Radius and buffTable.Radius > 0 then
                 -- If the radius is bigger than 0 then we will use the unit as the center of the stun blast
-                targets = utilities.GetTrueEnemyUnitsInSphere(self, PosEntity or self:GetPosition(), buffTable.Radius, category)
+                targets = utilities.GetTrueEnemyUnitsInSphere(self, PosEntity or GetPosition(self), buffTable.Radius, category)
             else
                 -- The buff will be applied to the unit only
                 if EntityCategoryContains(category, self) then
@@ -3497,7 +3503,7 @@ Unit = Class(moho.unit_methods) {
             end
             for _, target in targets or {} do
                 -- Exclude things currently flying around
-                if target:GetCurrentLayer() ~= 'Air' then
+                if GetCurrentLayer(target) ~= 'Air' then
                     target:SetStunned(buffTable.Duration or 1)
                 end
             end
