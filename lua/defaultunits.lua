@@ -57,16 +57,21 @@ StructureUnit = Class(Unit) {
         Unit.OnCreate(self)
         self.WeaponMod = {}
         self.FxBlinkingLightsBag = {}
+        self.CachePosition = self:GetCachePosition()
         if self:GetCurrentLayer() == 'Land' and self:GetBlueprint().Physics.FlattenSkirt then
             self:FlattenSkirt()
         end
+    end,
+
+    GetCachePosition = function(self)
+        return self.CachePosition or self:GetPosition()
     end,
 
     RotateTowardsEnemy = function(self)
         local bp = self:GetBlueprint()
         local army = self:GetArmy()
         local brain = self:GetAIBrain()
-        local pos = self:GetPosition()
+        local pos = self:GetCachePosition()
         local x, y = GetMapSize()
         local threats = {{pos = {x / 2, 0, y / 2}, dist = VDist2(pos[1], pos[3], x, y), threat = -1}}
         local cats = EntityCategoryContains(categories.ANTIAIR, self) and categories.AIR or (categories.STRUCTURE + categories.LAND + categories.NAVAL)
@@ -78,7 +83,7 @@ StructureUnit = Class(Unit) {
                 local seen = blip:IsSeenEver(army)
 
                 if on_radar or seen then
-                    local epos = u:GetPosition()
+                    local epos = u:GetCachePosition()
                     local threat = seen and (u:GetBlueprint().Defense.SurfaceThreatLevel or 0) or 1
 
                     table.insert(threats, {pos = epos, threat = threat, dist = VDist2(pos[1], pos[3], epos[1], epos[3])})
@@ -162,7 +167,7 @@ StructureUnit = Class(Unit) {
         local l = tarmac.Length
         local fadeout = tarmac.FadeOut
 
-        local x, y, z = unpack(self:GetPosition())
+        local x, y, z = unpack(self:GetCachePosition())
 
         -- I'm disabling this for now since there are so many things wrong with it
         local orient = orientation
@@ -200,7 +205,7 @@ StructureUnit = Class(Unit) {
                 albedo2 = albedo2 .. GetTarmac(faction, terrain)
             end
 
-            local tarmacHndl = CreateDecal(self:GetPosition(), orient, tarmac.Albedo .. GetTarmac(faction, terrainName) , albedo2 or '', 'Albedo', w, l, fadeout, lifeTime or 0, army, 0)
+            local tarmacHndl = CreateDecal(self:GetCachePosition(), orient, tarmac.Albedo .. GetTarmac(faction, terrainName) , albedo2 or '', 'Albedo', w, l, fadeout, lifeTime or 0, army, 0)
             table.insert(self.TarmacBag.Decals, tarmacHndl)
             if tarmac.RemoveWhenDead then
                 self.Trash:Add(tarmacHndl)
@@ -208,7 +213,7 @@ StructureUnit = Class(Unit) {
         end
 
         if normal and tarmac.Normal then
-            local tarmacHndl = CreateDecal(self:GetPosition(), orient, tarmac.Normal .. GetTarmac(faction, terrainName), '', 'Alpha Normals', w, l, fadeout, lifeTime or 0, army, 0)
+            local tarmacHndl = CreateDecal(self:GetCachePosition(), orient, tarmac.Normal .. GetTarmac(faction, terrainName), '', 'Alpha Normals', w, l, fadeout, lifeTime or 0, army, 0)
 
             table.insert(self.TarmacBag.Decals, tarmacHndl)
             if tarmac.RemoveWhenDead then
@@ -217,7 +222,7 @@ StructureUnit = Class(Unit) {
         end
 
         if glow and tarmac.Glow then
-            local tarmacHndl = CreateDecal(self:GetPosition(), orient, tarmac.Glow .. GetTarmac(faction, terrainName), '', 'Glow', w, l, fadeout, lifeTime or 0, army, 0)
+            local tarmacHndl = CreateDecal(self:GetCachePosition(), orient, tarmac.Glow .. GetTarmac(faction, terrainName), '', 'Glow', w, l, fadeout, lifeTime or 0, army, 0)
 
             table.insert(self.TarmacBag.Decals, tarmacHndl)
             if tarmac.RemoveWhenDead then
@@ -822,7 +827,7 @@ FactoryUnit = Class(StructureUnit) {
 
     CalculateRollOffPoint = function(self)
         local bp = self:GetBlueprint().Physics.RollOffPoints
-        local px, py, pz = unpack(self:GetPosition())
+        local px, py, pz = unpack(self:GetCachePosition())
 
         if not bp then return 0, px, py, pz end
 
@@ -1033,7 +1038,7 @@ MassCollectionUnit = Class(StructureUnit) {
     OnCreate = function(self)
         StructureUnit.OnCreate(self)
         local markers = ScenarioUtils.GetMarkers()
-        local unitPosition = self:GetPosition()
+        local unitPosition = self:GetCachePosition()
 
         for _, v in pairs(markers) do
             if v.type == 'MASS' then
@@ -1325,7 +1330,7 @@ SonarUnit = Class(StructureUnit) {
     TimedIdleSonarEffects = function(self)
         local layer = self:GetCurrentLayer()
         local army = self:GetArmy()
-        local pos = self:GetPosition()
+        local pos = self:GetCachePosition()
 
         if self.TimedSonarTTIdleEffects then
             while not self.Dead do

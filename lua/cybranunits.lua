@@ -291,7 +291,7 @@ CConstructionEggUnit = Class(CStructureUnit) {
         LandFactoryUnit.OnStopBeingBuilt(self, builder, layer)
         local bp = self:GetBlueprint()
         local buildUnit = bp.Economy.BuildUnit
-        local pos = self:GetPosition()
+        local pos = self:GetCachePosition()
         local aiBrain = self:GetAIBrain()
 
         self.Spawn = CreateUnitHPR(

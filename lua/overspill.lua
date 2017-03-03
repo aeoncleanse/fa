@@ -86,7 +86,7 @@ function DoOverspill(source, instigator, amount, dmgType, dmgMod)
             for _, v in overlappingShields do
                 local targetId = v:GetEntityId()
                 if v:IsUp() and not DidTakeDamageAlready(targetId, instigatorId, amount) then
-                    local direction = Util.GetDirectionVector(source.Owner:GetCachePosition(), v.Owner:GetCachePosition())
+                    local direction = Util.GetDirectionVector(source.Owner:GetPosition(), v.Owner:GetPosition())
                     v:ApplyDamage(source, (amount * dmgMod), direction, dmgType, false)
                     RegisterDamage(targetId, instigatorId, amount)
                 end

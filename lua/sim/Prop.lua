@@ -45,7 +45,7 @@ Prop = Class(moho.prop_methods, Entity) {
         end
 
         -- Correct to terrain, just to be sure
-        local pos = self:GetPosition()
+        local pos = self:GetCachePosition()
         local terrainAltitude = GetTerrainHeight(pos[1], pos[3])
         if pos[2] < terrainAltitude then -- Find props that, for some reason, are below ground at their central bone
             pos[2] = terrainAltitude

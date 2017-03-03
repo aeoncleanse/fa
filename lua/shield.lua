@@ -57,6 +57,11 @@ Shield = Class(moho.shield_methods, Entity) {
         self:SetType('Bubble')
         self.SpillOverDmgMod = math.max(spec.ShieldSpillOverDamageMod or 0.15, 0)
 
+        -- Fix position in memory if we're stationary
+        if EntityCategoryContains(categories.STRUCTURE, self.Owner) then
+            self.CachePosition = self:GetCachePosition()
+        end
+
         -- Show our 'lifebar'
         self:UpdateShieldRatio(1.0)
 
@@ -114,7 +119,7 @@ Shield = Class(moho.shield_methods, Entity) {
     end,
 
     GetCachePosition = function(self)
-        return self:GetPosition()
+        return self.CachePosition or self:GetPosition()
     end,
 
     -- Note, this is called by native code to calculate spillover damage. The
@@ -224,7 +229,7 @@ Shield = Class(moho.shield_methods, Entity) {
         local army = self:GetArmy()
         local OffsetLength = Util.GetVectorLength(vector)
         local ImpactMesh = Entity {Owner = self.Owner}
-        Warp(ImpactMesh, self:GetPosition())
+        Warp(ImpactMesh, self:GetCachePosition())
 
         if self.ImpactMeshBp ~= '' then
             ImpactMesh:SetMesh(self.ImpactMeshBp)
@@ -695,7 +700,7 @@ PersonalShield = Class(Shield){
         local OffsetLength = Util.GetVectorLength(vector)
         local ImpactEnt = Entity {Owner = self.Owner}
 
-        Warp(ImpactEnt, self:GetPosition())
+        Warp(ImpactEnt, self:GetCachePosition())
         ImpactEnt:SetOrientation(OrientFromDir(Vector(-vector.x, -vector.y, -vector.z)), true)
 
         for k, v in self.ImpactEffects do

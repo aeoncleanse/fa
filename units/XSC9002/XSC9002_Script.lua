@@ -25,7 +25,8 @@ XSC9002 = Class(SStructureUnit) {
     end,
 
     LandBlipThread = function(self)
-        local position = self:GetPosition()
+        local position = self:GetCachePosition()
+
         while not self.Dead do
             -- Spawn land blips
             self.landChildUnit = CreateUnitHPR('XSC9010', self:GetArmy(), position[1], position[2], position[3], 0, 0, 0)
@@ -39,7 +40,8 @@ XSC9002 = Class(SStructureUnit) {
     end,
 
     AirBlipThread = function(self)
-        local position = self:GetPosition()
+        local position = self:GetCachePosition()
+
         while not self.Dead do
             -- Spawn air blips
             self.airChildUnit = CreateUnitHPR('XSC9011', self:GetArmy(), position[1], position[2], position[3], 0, 0, 0)

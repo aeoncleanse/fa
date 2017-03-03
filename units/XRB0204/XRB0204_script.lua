@@ -15,7 +15,7 @@ XRB0204 = Class(CConstructionStructureUnit) {
         -- Check if we're really being built on top of another unit (as an upgrade).
         -- We might be being rebuild by the slightly bugtacular SCU REBUILDER behaviour, in which
         -- case we want to show all our bones anyway.
-        local upos = self:GetPosition()
+        local upos = self:GetCachePosition()
         local candidates = GetUnitsInRect(Rect(upos[1], upos[3], upos[1], upos[3]))
         for k, v in candidates do
             if target == v:GetBlueprint().BlueprintId then
