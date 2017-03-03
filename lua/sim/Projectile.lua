@@ -443,10 +443,6 @@ Projectile = Class(moho.projectile_methods, Entity) {
         end
     end,
 
-    GetCachePosition = function(self)
-        return self:GetPosition()
-    end,
-
     GetCollideFriendly = function(self)
         return self.CollideFriendly
     end,

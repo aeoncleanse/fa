@@ -16,7 +16,7 @@ local overspills = {}
 function GetOverlappingShields(source)
     local adjacentShields = {}
     local brain = source.Owner:GetAIBrain()
-    local units = brain:GetUnitsAroundPoint( (categories.SHIELD * categories.DEFENSE) + categories.BUBBLESHIELDSPILLOVERCHECK, source.Owner:GetPosition(), largestShieldDiameter, 'Ally' )
+    local units = brain:GetUnitsAroundPoint((categories.SHIELD * categories.DEFENSE) + categories.BUBBLESHIELDSPILLOVERCHECK, source.Owner:GetPosition(), largestShieldDiameter, 'Ally')
     local pos = source:GetCachePosition()
     local OverlapRadius = 0.98 * (source.Size / 2)  -- size is diameter, dividing by 2 to get radius
 
@@ -91,7 +91,7 @@ function DoOverspill(source, instigator, amount, dmgType, dmgMod)
             for k,v in overlappingShields do
                 local targetId = v:GetEntityId()
                 if v:IsUp() and not DidTakeDamageAlready(targetId, instigatorId, amount) then
-                    local direction = Util.GetDirectionVector(source.Owner:GetCachePosition(), v.Owner:GetCachePosition())
+                    local direction = Util.GetDirectionVector(source.Owner:GetPosition(), v.Owner:GetPosition())
                     v:ApplyDamage(source, (amount * dmgMod), direction, dmgType, false)
                     RegisterDamage(targetId, instigatorId, amount)
                 end

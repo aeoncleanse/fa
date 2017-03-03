@@ -41,7 +41,7 @@ Shield = Class(moho.shield_methods,Entity) {
         _c_CreateShield(self,spec)
     end,
 
-    OnCreate = function(self,spec)
+    OnCreate = function(self, spec)
         self.Trash = TrashBag()
         self.Owner = spec.Owner
         self.MeshBp = spec.Mesh
@@ -59,6 +59,11 @@ Shield = Class(moho.shield_methods,Entity) {
         self:SetHealth(self,spec.ShieldMaxHealth)
         self:SetType('Bubble')
         self:SetSpillOverDmgMod(spec.SpillOverDamageMod or 0.15)
+
+        -- Fix position in memory if we're stationary
+        if EntityCategoryContains(categories.STRUCTURE, self.Owner) then
+            self.CachePosition = self:GetCachePosition()
+        end
 
         -- Show our 'lifebar'
         self:UpdateShieldRatio(1.0)
@@ -121,7 +126,7 @@ Shield = Class(moho.shield_methods,Entity) {
     end,
 
     GetCachePosition = function(self)
-        return self:GetPosition()
+        return self.CachePosition or self:GetPosition()
     end,
 
     -- Note, this is called by native code to calculate spillover damage. The
@@ -135,8 +140,8 @@ Shield = Class(moho.shield_methods,Entity) {
         -- Like armor damage, first multiply by armor reduction, then apply handicap
         -- See SimDamage.cpp (DealDamage function) for how this should work
         amount = amount * (self.Owner:GetArmorMult(type))
-        amount = amount * ( 1.0 - ArmyGetHandicap(self:GetArmy()) )
-        return math.min( self:GetHealth(), amount )
+        amount = amount * (1.0 - ArmyGetHandicap(self:GetArmy()))
+        return math.min(self:GetHealth(), amount)
     end,
 
     OnCollisionCheckWeapon = function(self, firingWeapon)
@@ -225,7 +230,7 @@ Shield = Class(moho.shield_methods,Entity) {
         local army = self:GetArmy()
         local OffsetLength = Util.GetVectorLength(vector)
         local ImpactMesh = Entity {Owner = self.Owner}
-        Warp(ImpactMesh, self:GetPosition())
+        Warp(ImpactMesh, self:GetCachePosition())
 
         if self.ImpactMeshBp ~= '' then
             ImpactMesh:SetMesh(self.ImpactMeshBp)
@@ -310,19 +315,19 @@ Shield = Class(moho.shield_methods,Entity) {
     end,
 
     CreateShieldMesh = function(self)
-        self:SetCollisionShape( 'Sphere', 0, 0, 0, self.Size/2)
+        self:SetCollisionShape('Sphere', 0, 0, 0, self.Size / 2)
 
         self:SetMesh(self.MeshBp)
-        self:SetParentOffset(Vector(0,self.ShieldVerticalOffset,0))
+        self:SetParentOffset(Vector(0, self.ShieldVerticalOffset, 0))
         self:SetDrawScale(self.Size)
 
         if self.MeshZ == nil then
-            self.MeshZ = Entity { Owner = self.Owner }
+            self.MeshZ = Entity {Owner = self.Owner}
             self.MeshZ:SetMesh(self.MeshZBp)
-            Warp( self.MeshZ, self.Owner:GetPosition() )
+            Warp(self.MeshZ, self.Owner:GetPosition())
             self.MeshZ:SetDrawScale(self.Size)
-            self.MeshZ:AttachBoneTo(-1,self.Owner,-1)
-            self.MeshZ:SetParentOffset(Vector(0,self.ShieldVerticalOffset,0))
+            self.MeshZ:AttachBoneTo(-1, self.Owner, -1)
+            self.MeshZ:SetParentOffset(Vector(0, self.ShieldVerticalOffset, 0))
 
             self.MeshZ:SetVizToFocusPlayer('Always')
             self.MeshZ:SetVizToEnemies('Intel')
@@ -707,13 +712,13 @@ PersonalShield = Class(Shield){
     CreateImpactEffect = function(self, vector)
         local army = self:GetArmy()
         local OffsetLength = Util.GetVectorLength(vector)
-        local ImpactEnt = Entity { Owner = self.Owner }
+        local ImpactEnt = Entity {Owner = self.Owner}
 
-        Warp( ImpactEnt, self:GetPosition())
-        ImpactEnt:SetOrientation(OrientFromDir(Vector(-vector.x,-vector.y,-vector.z)),true)
+        Warp(ImpactEnt, self:GetCachePosition())
+        ImpactEnt:SetOrientation(OrientFromDir(Vector(-vector.x, -vector.y, -vector.z)), true)
 
         for k, v in self.ImpactEffects do
-            CreateEmitterAtBone( ImpactEnt, -1, army, v ):OffsetEmitter(0,0,OffsetLength)
+            CreateEmitterAtBone(ImpactEnt, -1, army, v):OffsetEmitter(0, 0, OffsetLength)
         end
         WaitSeconds(1)
 

@@ -31,7 +31,7 @@ XSC9002 = Class(SStructureUnit) {
     end,
 
     LandBlipThread = function(self)
-        local position = self:GetPosition()
+        local position = self:GetCachePosition()
 
         while not self.Dead do
             --Spawn land blips
@@ -48,7 +48,7 @@ XSC9002 = Class(SStructureUnit) {
     end,
 
     AirBlipThread = function(self)
-        local position = self:GetPosition()
+        local position = self:GetCachePosition()
 
         while not self.Dead do
             --Spawn air blips

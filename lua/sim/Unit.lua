@@ -336,13 +336,6 @@ Unit = Class(moho.unit_methods) {
     -------------------------------------------------------------------------------------------
     ---- MISC FUNCTIONS
     -------------------------------------------------------------------------------------------
-
-
-
-    GetCachePosition = function(self)
-        return GetPosition(self)
-    end,
-
     GetFootPrintSize = function(self)
         local fp = GetBlueprint(self).Footprint
         return mathMax(fp.SizeX, fp.SizeZ)
