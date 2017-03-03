@@ -85,7 +85,7 @@ UEL0401 = Class(TMobileFactoryUnit) {
             self.PrepareToBuildManipulator:SetRate(self.PrepareToBuildAnimRate)
             local bone = self.BuildAttachBone
             self:DetachAll(bone)
-            if not self.UnitBeingBuilt:IsDead() then
+            if not self.UnitBeingBuilt.Dead then
                 unitBuilding:AttachBoneTo( -2, self, bone )
                 local unitHeight = unitBuilding:GetBlueprint().SizeY
                 self.AttachmentSliderManip:SetGoal(0, unitHeight, 0 )
@@ -109,7 +109,7 @@ UEL0401 = Class(TMobileFactoryUnit) {
     RollingOffState = State {
         Main = function(self)
             local unitBuilding = self.UnitBeingBuilt
-            if not unitBuilding:IsDead() then
+            if not unitBuilding.Dead then
                 unitBuilding:ShowBone(0,true)
             end
             WaitFor(self.PrepareToBuildManipulator)
@@ -123,7 +123,7 @@ UEL0401 = Class(TMobileFactoryUnit) {
             self.AttachmentSliderManip:SetGoal(0, -3, 17)
             WaitFor(self.AttachmentSliderManip)
             
-            if not unitBuilding:IsDead() then
+            if not unitBuilding.Dead then
                 unitBuilding:DetachFrom(true)
                 self:DetachAll(self.BuildAttachBone)
                 local  worldPos = self:CalculateWorldPositionFromRelative({0, 0, -15})

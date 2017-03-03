@@ -92,7 +92,7 @@ function CreateThreatTriggerAroundUnit(callbackFunction, aiBrain, unit, rings, o
 end
 
 function ThreatTriggerAroundUnitThread(callbackFunction, aiBrain, unit, rings, onceOnly, value, greater, name)
-    while not unit:IsDead() do
+    while not unit.Dead do
         local threat = aiBrain:GetThreatAtPosition(unit:GetPosition(), rings, true)
         if greater and threat >= value then
             if name then
@@ -193,7 +193,7 @@ function GroupDeathTriggerThread(callbackFunction, group, name)
     while not allDead do
         allDead = true
         for k, v in group do
-            if not v:IsDead() then
+            if not v.Dead then
                 allDead = false
                 break
             end
@@ -218,7 +218,7 @@ function SubGroupDeathTriggerThread(callbackFunction, group, num, name)
     while(numDead < num) do
         numDead = 0
         for k, v in group do
-            if(v:IsDead()) then
+            if(v.Dead) then
                 numDead = numDead + 1
             end
             if(numDead == num) then
@@ -303,7 +303,7 @@ function UnitToPositionDistanceTriggerThread( cb, unit, marker, distance, name )
     end
     local fired = false
     while not fired do
-        if unit:IsDead() then
+        if unit.Dead then
             return
         else
             local position = unit:GetPosition()
@@ -330,7 +330,7 @@ end
 function CreateUnitNearTypeTriggerThread( callbackFunction, unit, brain, category, distance, name )
     local fired = false
     while not fired do
-        if unit:IsDead() then
+        if unit.Dead then
             return
         else
             local position = unit:GetPosition()

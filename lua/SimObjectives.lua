@@ -298,7 +298,7 @@ function Kill(Type, Complete, Title, Description, Target)
     end
 
     for k, unit in Target.Units do
-        if not unit:IsDead() then
+        if not unit.Dead then
             -- Mark the units unless MarkUnits == false
             if ( Target.MarkUnits == nil ) or Target.MarkUnits then
                 local ObjectiveArrow = import('objectiveArrow.lua').ObjectiveArrow
@@ -387,7 +387,7 @@ function Capture(Type, Complete, Title, Description, Target)
     end
 
     for k, unit in Target.Units do
-        if not unit:IsDead() then
+        if not unit.Dead then
             -- Mark the units unless MarkUnits == false
             if ( Target.MarkUnits == nil ) or Target.MarkUnits then
                 local ObjectiveArrow = import('objectiveArrow.lua').ObjectiveArrow
@@ -515,7 +515,7 @@ function KillOrCapture(Type, Complete, Title, Description, Target)
     end
 
     for k, unit in Target.Units do
-        if not unit:IsDead() then
+        if not unit.Dead then
             -- Mark the units unless MarkUnits == false
             if ( Target.MarkUnits == nil ) or Target.MarkUnits then
                 local ObjectiveArrow = import('objectiveArrow.lua').ObjectiveArrow
@@ -750,7 +750,7 @@ function SpecificUnitsInArea(Type, Complete, Title, Description, Target)
         while objective.Active do
             local cnt = 0
             for k, unit in units do
-                if not unit:IsDead() then
+                if not unit.Dead then
                     if ScenarioUtils.InRect( unit:GetPosition(), rect ) then
                         cnt = cnt + 1
                     end
@@ -870,7 +870,7 @@ function CategoriesInArea(Type, Complete, Title, Description, Action, Target)
                 local ArmiesList = CreateArmiesList(requirement.Armies)
                 if units then
                     for k, unit in units do
-                        if not unit:IsDead() and not unit:IsBeingBuilt() then
+                        if not unit.Dead and not unit:IsBeingBuilt() then
                             if not (requirement.ArmyIndex or requirement.Armies) or (requirement.ArmyIndex == unit:GetArmy()) or ArmiesList[unit:GetArmy()] then
                                 if EntityCategoryContains(requirement.Category, unit) then
                                     if not unit.Marked and objective.MarkUnits then
@@ -1393,7 +1393,7 @@ function Basic(Type, Complete, Title, Description, Image, Target)
         if (target.Units) then
             if (target.MarkUnits) then
                 for k, unit in target.Units do
-                    if not unit:IsDead() then
+                    if not unit.Dead then
                         local ObjectiveArrow = import('objectiveArrow.lua').ObjectiveArrow
                         local arrow = ObjectiveArrow { AttachTo = unit }
                         table.insert( objective.UnitMarkers, arrow )
@@ -1585,7 +1585,7 @@ function AddObjective(Type,         -- 'primary', 'bonus', etc
 
                                 -- If it's not mobile we can exit the thread since
                                 -- the blip won't move.
-                                if not unit:IsDead() and not unit:BeenDestroyed() and not EntityCategoryContains(categories.MOBILE, unit) then
+                                if not unit.Dead and not unit:BeenDestroyed() and not EntityCategoryContains(categories.MOBILE, unit) then
                                     return
                                 end
                             end
@@ -1655,7 +1655,7 @@ function AddObjective(Type,         -- 'primary', 'bonus', etc
                                     obj.Tag )
 
                     -- If it's not mobile we can exit the thread since the unit won't move.
-                    if not unit:IsDead() and not unit:BeenDestroyed() and not EntityCategoryContains(categories.MOBILE, unit) then
+                    if not unit.Dead and not unit:BeenDestroyed() and not EntityCategoryContains(categories.MOBILE, unit) then
                         return
                     end
 
@@ -1849,7 +1849,7 @@ function AddObjective(Type,         -- 'primary', 'bonus', etc
     if Target then
         if Target.Units then
             for k, v in Target.Units do
-                if v and v.IsDead and not v:IsDead() then
+                if v and not v.Dead then
                     objective:AddUnitTarget(v)
                 end
             end

@@ -608,7 +608,7 @@ CommanderOverrideCheck = function(self)
    
     local commanders = aiBrain:GetUnitsAroundPoint(categories.COMMAND, self:GetPlatoonPosition(), weaponRange, 'Enemy')
     
-    if table.getn(commanders) == 0 or commanders[1]:IsDead() then
+    if table.getn(commanders) == 0 or commanders[1].Dead then
         return false
     end
 
@@ -2372,7 +2372,7 @@ CommanderOverrideCheckSorian = function(self)
    
     local commanders = aiBrain:GetUnitsAroundPoint(categories.COMMAND, self:GetPlatoonPosition(), weaponRange, 'Enemy')
     
-    if table.getn(commanders) == 0 or commanders[1]:IsDead() or commanders[1]:GetCurrentLayer() == 'Seabed' then
+    if table.getn(commanders) == 0 or commanders[1].Dead or commanders[1]:GetCurrentLayer() == 'Seabed' then
         return false
     end
 

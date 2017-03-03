@@ -28,7 +28,7 @@ function BaseManagerEngineerPlatoonSplit(platoon)
         aiBrain:DisbandPlatoon(platoon)
     end
     for k,v in units do
-        if not v:IsDead() then
+        if not v.Dead then
             -- make sure current base manager isnt at capacity of engineers
             if EntityCategoryContains( categories.ENGINEER, v ) and bManager:GetMaximumEngineers() > bManager:GetCurrentEngineerCount() then
                 if bManager.EngineerBuildRateBuff then
@@ -93,7 +93,7 @@ function BaseManagerSingleEngineerPlatoon(platoon)
             if not commandUnit and BMBC.ExpansionBasesEnabled( aiBrain, baseName ) and BMBC.ExpansionBasesNeedEngineers( aiBrain, baseName ) then
                 ExpansionEngineer(platoon)
 
-            elseif canPermanentAssist and bManager.ConditionalBuildData.Unit and not bManager.ConditionalBuildData.Unit:IsDead()
+            elseif canPermanentAssist and bManager.ConditionalBuildData.Unit and not bManager.ConditionalBuildData.Unit.Dead
             and bManager.ConditionalBuildData.NeedsMoreBuilders() then
                 AssistConditionalBuild(platoon)
 
@@ -153,7 +153,7 @@ function CanConditionalBuild(singleEngineerPlatoon)
     -- Is there a build in progress?
     if bManager.ConditionalBuildData.IsBuilding then
         -- If there's a build in progress but the unit is dead, reset the variables.
-        if bManager.ConditionalBuildData.Unit:IsDead() then
+        if bManager.ConditionalBuildData.Unit.Dead then
             local selectedBuild = bManager.ConditionalBuildTable[bManager.ConditionalBuildData.Index]
 
             -- If we're not supposed to retry, then remove from the conditional build list
@@ -170,7 +170,7 @@ function CanConditionalBuild(singleEngineerPlatoon)
     -- Is there a build being initiated (unit is moving to start the build)?
     if bManager.ConditionalBuildData.IsInitiated then
         -- Is the initiator is still alive? (If the initiator is dead it means he died before the build was started and we can ignore the IsInitiated flag)
-        if bManager.ConditionalBuildData.MainBuilder and not bManager.ConditionalBuildData.MainBuilder:IsDead() then
+        if bManager.ConditionalBuildData.MainBuilder and not bManager.ConditionalBuildData.MainBuilder.Dead then
             return false
         end
     end
@@ -481,11 +481,11 @@ function PermanentFactoryAssist(platoon)
         local high, highFac, low, lowFac
         
         for k,v in facs do
-            if not v:IsDead() then
+            if not v.Dead then
                 local guards = v:GetGuards()
                 local numGuards = 0
                 for gNum,gUnit in guards do
-                    if not gUnit:IsDead() and not EntityCategoryContains(categories.FACTORY, gUnit)
+                    if not gUnit.Dead and not EntityCategoryContains(categories.FACTORY, gUnit)
                     and bManager.PermanentAssisters and bManager.PermanentAssisters[gUnit] then -- Make sure this guy is a permanent assister and not a transient assister
                         numGuards = numGuards + 1
                     end
@@ -565,7 +565,7 @@ function BaseManagerAssistThread( platoon )
                 local currLow = false
                 for k,v in consUnits do
                     local guardNum = table.getn(v:GetGuards())
-                    if not v:IsDead() and guardNum < lowNum then
+                    if not v.Dead and guardNum < lowNum then
                         currLow = v
                         lowNum = table.getn(v:GetGuards())
                     end
@@ -574,7 +574,7 @@ function BaseManagerAssistThread( platoon )
                     end
                 end
                 if unit:GetGuardedUnit() then
-                    if unit:GetGuardedUnit():IsDead() or EntityCategoryContains( categories.FACTORY, unit:GetGuardedUnit() ) or
+                    if unit:GetGuardedUnit().Dead or EntityCategoryContains( categories.FACTORY, unit:GetGuardedUnit() ) or
                             highNum > lowNum + 1 then
                         assistee = currLow
                     end
@@ -594,11 +594,11 @@ function BaseManagerAssistThread( platoon )
                     for unitNum, constructionUnit in unitsBuilding do
 
                         -- Check if the unit is actually building something
-                        if not constructionUnit:IsDead() and constructionUnit:IsUnitState('Building') then
+                        if not constructionUnit.Dead and constructionUnit:IsUnitState('Building') then
 
                             -- Check to make sure unit being built is of proper category
                             local buildingUnit = constructionUnit.UnitBeingBuilt
-                            if buildingUnit and not buildingUnit:IsDead() and EntityCategoryContains( buildCat, buildingUnit ) then
+                            if buildingUnit and not buildingUnit.Dead and EntityCategoryContains( buildCat, buildingUnit ) then
 
                                 -- If the unit building is a factory make sure its in the right PBM Location Type
                                 if not EntityCategoryContains( categories.FACTORY, constructionUnit ) or aiBrain:PBMFactoryLocationCheck(constructionUnit, platoon.PlatoonData.BaseName) then
@@ -624,10 +624,10 @@ function BaseManagerAssistThread( platoon )
 
             -- If the unit to be assisted is a factory, assist whatever it is assisting or is assisting it
             -- Makes sure all factories have someone helping out to load balance better
-            if assistee and not assistee:IsDead() and EntityCategoryContains( categories.FACTORY, assistee ) then
+            if assistee and not assistee.Dead and EntityCategoryContains( categories.FACTORY, assistee ) then
                 platoon:Stop()
                 local guardee = assistee:GetGuardedUnit()
-                if guardee and not guardee:IsDead() and EntityCategoryContains( categories.FACTORY, guardee ) then
+                if guardee and not guardee.Dead and EntityCategoryContains( categories.FACTORY, guardee ) then
                     local factories = AIUtils.AIReturnAssistingFactories( guardee )
                     table.insert(factories, assistee)
                     AIUtils.AIEngineersAssistFactories( aiBrain, platoonUnits, factories )
@@ -639,7 +639,7 @@ function BaseManagerAssistThread( platoon )
                     assistingBool = true
                 end
             end
-            if assistee and not assistee:IsDead() then
+            if assistee and not assistee.Dead then
                 if not assistingBool then
                     platoon:Stop()
                     IssueGuard( platoonUnits, assistee )
@@ -766,7 +766,7 @@ function BaseManagerEngineerThread(platoon)
     local eng
 
     for k, v in platoonUnits do
-        if not v:IsDead() and EntityCategoryContains(categories.CONSTRUCTION, v) then
+        if not v.Dead and EntityCategoryContains(categories.CONSTRUCTION, v) then
             if not eng then
                 eng = v
             else
@@ -776,7 +776,7 @@ function BaseManagerEngineerThread(platoon)
         end
     end
 
-    if not eng or eng:IsDead() then
+    if not eng or eng.Dead then
         aiBrain:DisbandPlatoon(platoon)
         return
     end
@@ -803,7 +803,7 @@ function BaseManagerEngineerThread(platoon)
     buildFunction = BuildBaseManagerStructure
 
     -- #### BUILD BUILDINGS HERE ####
-    if eng:IsDead() then
+    if eng.Dead then
         aiBrain:DisbandPlatoon(platoon)
     end
     local retBool, unitName
@@ -840,7 +840,7 @@ function BaseManagerEngineerThread(platoon)
                             end
                             if not nameSet then
                                 local buildingUnit = eng.UnitBeingBuilt
-                                if unitName and buildingUnit and not buildingUnit:IsDead() then
+                                if unitName and buildingUnit and not buildingUnit.Dead then
                                     nameSet = true
                                     local armyIndex = aiBrain:GetArmyIndex()
                                     if ScenarioInfo.UnitNames[armyIndex] and EntityCategoryContains( categories.STRUCTURE, buildingUnit ) then
@@ -849,8 +849,8 @@ function BaseManagerEngineerThread(platoon)
                                     buildingUnit.UnitName = unitName
                                 end
                             end
-                        until eng:IsDead() or eng:IsIdleState()
-                        if not eng:IsDead() then
+                        until eng.Dead or eng:IsIdleState()
+                        if not eng.Dead then
                             baseManager.UnfinishedBuildings[unitName] = false
                             baseManager:DecrementUnitBuildCounter(unitName)
                         end
@@ -917,7 +917,7 @@ function BuildUnfinishedStructures(platoon)
     local eng = platoonUnits[1]
     local bManager = aiBrain.BaseManagers[platoon.PlatoonData.BaseName]
 
-    if not eng or eng:IsDead() then
+    if not eng or eng.Dead then
         aiBrain:DisbandPlatoon(platoon)
         return
     end
@@ -937,7 +937,7 @@ function BuildUnfinishedStructures(platoon)
         end
         -- Check all unfinished buildings to see if they need someone workin on them
         for k,v in bManager.UnfinishedBuildings do
-            if v and ScenarioInfo.UnitNames[armyIndex][k] and not ScenarioInfo.UnitNames[armyIndex][k]:IsDead() then
+            if v and ScenarioInfo.UnitNames[armyIndex][k] and not ScenarioInfo.UnitNames[armyIndex][k].Dead then
                 if not beingBuiltList[k] then
                     unfinishedBuildings = true
                     IssueClearCommands({eng})
@@ -974,12 +974,12 @@ function BaseManagerPatrolLocationFactoriesAI(platoon)
         local posTable = {}
         if factories then
             for k,fac in factories do
-                if not fac:IsDead() then
+                if not fac.Dead then
                     table.insert(posTable, fac:GetPosition())
                     local guards = fac:GetGuards()
                     if guards then
                         for num,guard in guards do
-                            if not guard:IsDead() then
+                            if not guard.Dead then
                                 table.insert( posTable, guard:GetPosition() )
                             end
                         end
@@ -1125,7 +1125,7 @@ end
 function AMUnlockRatio(platoon)
     local count = 0
     for k,v in platoon:GetPlatoonUnits() do
-        if not v:IsDead() then
+        if not v.Dead then
             count = count + 1
         end
     end
@@ -1140,7 +1140,7 @@ function AMUnlockRatio(platoon)
                          end
                      end
     for k,v in platoon:GetPlatoonUnits() do
-        if not v:IsDead() then
+        if not v.Dead then
             v.PlatoonHandle = platoon
             TriggerFile.CreateUnitDeathTrigger( callback, v )
             -- v:AddOnKilledCallback(callback)
@@ -1151,7 +1151,7 @@ end
 function AMUnlockRatioTimer(platoon)
     local count = 0
     for k,v in platoon:GetPlatoonUnits() do
-        if not v:IsDead() then
+        if not v.Dead then
             count = count + 1
         end
     end
@@ -1166,7 +1166,7 @@ function AMUnlockRatioTimer(platoon)
                          end
                      end
     for k,v in platoon:GetPlatoonUnits() do
-        if not v:IsDead() then
+        if not v.Dead then
             v.PlatoonHandle = platoon
             v:AddOnKilledCallback(callback)
             TriggerFile.CreateUnitDeathTrigger( callback, v )
@@ -1215,7 +1215,7 @@ function UnitUpgradeThread(unit)
         unitType = 'DefaultSACU'
     end
 
-    while not unit:IsDead() do
+    while not unit.Dead do
         if not bManager then
             bManager = aiBrain.BaseManagers[unit.PlatoonData.BaseName]
         end
@@ -1244,7 +1244,7 @@ function UnitUpgradeThread(unit)
 
                 repeat
                     WaitSeconds(3)
-                    if unit:IsDead() then
+                    if unit.Dead then
                         return
                     end
                 until unit:IsIdleState()

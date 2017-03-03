@@ -165,7 +165,7 @@ function CDRInPoolNeedAnyStructure(aiBrain, baseName)
     local pool = aiBrain:GetPlatoonUniquelyNamed( 'ArmyPool' )
     local cdrUnit = false
     for k,v in pool:GetPlatoonUnits() do
-        if not v:IsDead() and EntityCategoryContains( categories.COMMAND, v ) then
+        if not v.Dead and EntityCategoryContains( categories.COMMAND, v ) then
             cdrUnit = v
         end
     end
@@ -210,7 +210,7 @@ function SubCDRInPoolNeedAnyStructure(aiBrain, baseName)
     local pool = aiBrain:GetPlatoonUniquelyNamed( 'ArmyPool' )
     local cdrUnit = false
     for k,v in pool:GetPlatoonUnits() do
-        if not v:IsDead() and EntityCategoryContains( categories.SUBCOMMANDER, v ) then
+        if not v.Dead and EntityCategoryContains( categories.SUBCOMMANDER, v ) then
             cdrUnit = v
         end
     end
@@ -261,9 +261,9 @@ function CategoriesBeingBuilt(aiBrain, baseName, catTable)
 
     local unitsBuilding = aiBrain:GetListOfUnits( categories.CONSTRUCTION, false )
     for unitNum, unit in unitsBuilding do
-        if not unit:IsDead() and unit:IsUnitState('Building') then
+        if not unit.Dead and unit:IsUnitState('Building') then
             local buildingUnit = unit.UnitBeingBuilt
-            if buildingUnit and not buildingUnit:IsDead() then
+            if buildingUnit and not buildingUnit.Dead then
                 for catNum, buildeeCat in catTable do
                     local buildCat = ParseEntityCategory(buildeeCat)
                     if EntityCategoryContains( buildCat, buildingUnit ) then
@@ -371,7 +371,7 @@ function UnfinishedBuildingsCheck( aiBrain, baseName )
         end
     end
     for k,v in bManager.UnfinishedBuildings do
-        if v and ScenarioInfo.UnitNames[armyIndex][k] and not ScenarioInfo.UnitNames[armyIndex][k]:IsDead() then
+        if v and ScenarioInfo.UnitNames[armyIndex][k] and not ScenarioInfo.UnitNames[armyIndex][k].Dead then
             if not beingBuiltList[k] then
                 return true
             end

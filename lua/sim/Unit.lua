@@ -336,13 +336,8 @@ Unit = Class(moho.unit_methods) {
     -------------------------------------------------------------------------------------------
     ---- MISC FUNCTIONS
     -------------------------------------------------------------------------------------------
-    SetDead = function(self)
-        self.Dead = true
-    end,
 
-    IsDead = function(self)
-        return self.Dead
-    end,
+
 
     GetCachePosition = function(self)
         return GetPosition(self)
@@ -353,7 +348,7 @@ Unit = Class(moho.unit_methods) {
         return mathMax(fp.SizeX, fp.SizeZ)
     end,
 
-    --Returns 4 numbers: skirt x0, skirt z0, skirt.x1, skirt.z1
+    -- Returns 4 numbers: skirt x0, skirt z0, skirt.x1, skirt.z1
     GetSkirtRect = function(self)
         local bp = GetBlueprint(self)
         local x, y, z = unpack(GetPosition(self))
@@ -4082,5 +4077,10 @@ Unit = Class(moho.unit_methods) {
         end
 
         self.CanBeKilled = val
+    end,
+    
+    -- Deprecated, but too common in the base game files to just remove
+    IsDead = function(self)
+        return self.Dead
     end,
 }
