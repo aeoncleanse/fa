@@ -24,6 +24,7 @@ local teleportTime = {}
 
 -- Localized global functions for speed. ~10% for single references, ~30% for double (eg table.insert)
 local GetBlueprint = moho.entity_methods.GetBlueprint
+local GetPosition = moho.entity_methods.GetPosition
 local HideBone = moho.unit_methods.HideBone
 local ShowBone = moho.unit_methods.ShowBone
 
@@ -145,6 +146,17 @@ StructureUnit = Class(Unit) {
         local x0, z0, x1, z1 = self:GetSkirtRect()
         x0, z0, x1, z1 = math.floor(x0), math.floor(z0), math.ceil(x1), math.ceil(z1)
         FlattenMapRect(x0, z0, x1 - x0, z1 - z0, y)
+    end,
+
+    -- Returns 4 numbers: skirt x0, skirt z0, skirt.x1, skirt.z1
+    GetSkirtRect = function(self)
+        local bp = GetBlueprint(self)
+        local x, y, z = unpack(GetPosition(self))
+        local fx = x - bp.Footprint.SizeX * 0.5
+        local fz = z - bp.Footprint.SizeZ * 0.5
+        local sx = fx + bp.Physics.SkirtOffsetX
+        local sz = fz + bp.Physics.SkirtOffsetZ
+        return sx, sz, sx + bp.Physics.SkirtSizeX, sz + bp.Physics.SkirtSizeZ
     end,
 
     CreateTarmac = function(self, albedo, normal, glow, orientation, specTarmac, lifeTime)
