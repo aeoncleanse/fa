@@ -1000,10 +1000,6 @@ Unit = Class(moho.unit_methods) {
         return (self.EnergyBuildAdjMod or 1)
     end,
 
-    GetEconomyBuildRate = function(self)
-        return self:GetBuildRate()
-    end,
-
     GetBuildRate = function(self)
         return mathMax( moho.unit_methods.GetBuildRate(self), 0.00001) -- make sure we're never returning 0, this value will be used to divide with
     end,
