@@ -992,14 +992,6 @@ Unit = Class(moho.unit_methods) {
         self.BuildTimeMultiplier = time_mult
     end,
 
-    GetMassBuildAdjMod = function(self)
-        return (self.MassBuildAdjMod or 1)
-    end,
-
-    GetEnergyBuildAdjMod = function(self)
-        return (self.EnergyBuildAdjMod or 1)
-    end,
-
     GetBuildRate = function(self)
         return mathMax( moho.unit_methods.GetBuildRate(self), 0.00001) -- make sure we're never returning 0, this value will be used to divide with
     end,
