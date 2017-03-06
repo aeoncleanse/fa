@@ -60,7 +60,7 @@ UAL0301 = Class(SupportCommander) {
         --Shields
         elseif enh == 'Shield' then
             self:AddToggleCap('RULEUTC_ShieldToggle')
-            self:SetEnergyMaintenanceConsumptionOverride(bp.MaintenanceConsumptionPerSecondEnergy or 0)
+            self.EnergyMaintenanceConsumptionOverride = bp.MaintenanceConsumptionPerSecondEnergy or 0
             self:SetMaintenanceConsumptionActive()
             self:CreateShield(bp)
         elseif enh == 'ShieldRemove' then
@@ -151,7 +151,7 @@ UAL0301 = Class(SupportCommander) {
     CreateHeavyShield = function(self, bp)
         WaitTicks(1)
         self:CreateShield(bp)
-        self:SetEnergyMaintenanceConsumptionOverride(bp.MaintenanceConsumptionPerSecondEnergy or 0)
+        self.EnergyMaintenanceConsumptionOverride = bp.MaintenanceConsumptionPerSecondEnergy or 0
         self:SetMaintenanceConsumptionActive()
     end
 }

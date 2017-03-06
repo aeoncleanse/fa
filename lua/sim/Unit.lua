@@ -936,7 +936,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     OnGiven = function(self, newUnit)
-        self:DoUnitCallbacks( 'OnGiven', newUnit )
+        self:DoUnitCallbacks('OnGiven', newUnit)
     end,
 
     AddOnGivenCallback = function(self, fn)
@@ -952,12 +952,12 @@ Unit = Class(moho.unit_methods) {
     OnConsumptionInActive = function(self)
     end,
 
-    --We are splitting Consumption into two catagories:
+    -- We are splitting Consumption into two catagories:
     --  Maintenance -- for units that are usually "on": radar, mass extractors, etc.
     --  Active -- when upgrading, constructing, or something similar.
     --
-    --It will be possible for both or neither of these consumption methods to be
-    --in operation at the same time.  Here are the functions to turn them off and on.
+    -- It will be possible for both or neither of these consumption methods to be
+    -- in operation at the same time.  Here are the functions to turn them off and on.
     SetMaintenanceConsumptionActive = function(self)
         self.MaintenanceConsumption = true
         self:UpdateConsumptionValues()
@@ -993,20 +993,20 @@ Unit = Class(moho.unit_methods) {
     end,
 
     GetBuildRate = function(self)
-        return mathMax( moho.unit_methods.GetBuildRate(self), 0.00001) -- make sure we're never returning 0, this value will be used to divide with
+        return mathMax(moho.unit_methods.GetBuildRate(self), 0.00001) -- make sure we're never returning 0, this value will be used to divide with
     end,
 
     UpdateAssistersConsumption = function(self)
         local units = {}
-        --We need to check all the units assisting.
-        for k,v in self:GetGuards() do
+        -- We need to check all the units assisting.
+        for _, v in self:GetGuards() do
             if not v.Dead then
                 tableInsert(units, v)
             end
         end
 
-        local workers = self:GetAIBrain():GetUnitsAroundPoint(( categories.REPAIR), GetPosition(self), 50, 'Ally' )
-        for k,v in workers do
+        local workers = self:GetAIBrain():GetUnitsAroundPoint((categories.REPAIR), GetPosition(self), 50, 'Ally')
+        for _, v in workers do
             if not v.Dead and v:IsUnitState('Repairing') and v:GetFocusUnit() == self then
                 tableInsert(units, v)
             end
@@ -1014,7 +1014,7 @@ Unit = Class(moho.unit_methods) {
 
         for _, v in units do
             if not v.updatedConsumption then
-                v.updatedConsumption = true -- recursive protection
+                v.updatedConsumption = true -- Recursive protection
                 v:UpdateConsumptionValues()
                 v.updatedConsumption = false
             end
@@ -1103,18 +1103,6 @@ Unit = Class(moho.unit_methods) {
         if not bpEcon then return end
         SetProductionPerSecondEnergy(self, (bpEcon.ProductionPerSecondEnergy or 0) * (self.EnergyProdAdjMod or 1))
         SetProductionPerSecondMass(self, (bpEcon.ProductionPerSecondMass or 0) * (self.MassProdAdjMod or 1))
-    end,
-
-    SetEnergyMaintenanceConsumptionOverride = function(self, override)
-        self.EnergyMaintenanceConsumptionOverride = override or 0
-    end,
-
-    SetBuildRateOverride = function(self, overRide)
-        self.BuildRateOverride = overRide
-    end,
-
-    GetBuildRateOverride = function(self)
-        return self.BuildRateOverride
     end,
 
     -------------------------------------------------------------------------------------------

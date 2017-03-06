@@ -184,7 +184,7 @@ BuffField = Class(Entity) {
             local bp = self:GetBlueprint()
 
             self.ThreadHandle = self.Owner:ForkThread(self.FieldThread, self)
-            Owner:SetEnergyMaintenanceConsumptionOverride(bp.MaintenanceConsumptionPerSecondEnergy or 0)
+            Owner.EnergyMaintenanceConsumptionOverride = bp.MaintenanceConsumptionPerSecondEnergy or 0
             Owner:SetMaintenanceConsumptionActive()
 
             self.Enabled = true

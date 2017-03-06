@@ -20,7 +20,7 @@ UEL0301 = Class(SupportCommander) {
             Scale = 0.5,
             Type = 'Jammer01',
         },
-    },    
+    },
 
     Weapons = {
         RightHeavyPlasmaCannon = Class(TDFHeavyPlasmaCannonWeapon) {},
@@ -38,7 +38,7 @@ UEL0301 = Class(SupportCommander) {
     __init = function(self)
         SupportCommander.__init(self, 'RightHeavyPlasmaCannon')
     end,
-    
+
     OnStopBeingBuilt = function(self, builder, layer)
         SupportCommander.OnStopBeingBuilt(self, builder, layer)
         -- Block Jammer until Enhancement is built
@@ -51,9 +51,9 @@ UEL0301 = Class(SupportCommander) {
         if (order == 'Repair' and not unitBeingBuilt:IsBeingBuilt()) or (UpgradesFrom and UpgradesFrom ~= 'none' and self:IsUnitState('Guarding'))then
             EffectUtil.CreateDefaultBuildBeams( self, unitBeingBuilt, self:GetBlueprint().General.BuildBones.BuildEffectBones, self.BuildEffectsBag )
         else
-            EffectUtil.CreateUEFCommanderBuildSliceBeams( self, unitBeingBuilt, self:GetBlueprint().General.BuildBones.BuildEffectBones, self.BuildEffectsBag )   
-        end           
-    end,     
+            EffectUtil.CreateUEFCommanderBuildSliceBeams( self, unitBeingBuilt, self:GetBlueprint().General.BuildBones.BuildEffectBones, self.BuildEffectsBag )
+        end
+    end,
 
     RebuildPod = function(self)
         if self.HasPod == true then
@@ -70,7 +70,7 @@ UEL0301 = Class(SupportCommander) {
             self.Pod = pod
         end
     end,
-    
+
     NotifyOfPodDeath = function(self, pod, rebuildDrone)
         if rebuildDrone == true then
             if self.HasPod == true then
@@ -108,7 +108,7 @@ UEL0301 = Class(SupportCommander) {
             KillThread(self.RebuildThread)
         elseif enh == 'Shield' then
             self:AddToggleCap('RULEUTC_ShieldToggle')
-            self:SetEnergyMaintenanceConsumptionOverride(bp.MaintenanceConsumptionPerSecondEnergy or 0)
+            self.EnergyMaintenanceConsumptionOverride = bp.MaintenanceConsumptionPerSecondEnergy or 0
             self:SetMaintenanceConsumptionActive()
             self:CreateShield(bp)
         elseif enh == 'ShieldRemove' then
@@ -117,17 +117,17 @@ UEL0301 = Class(SupportCommander) {
             self:SetMaintenanceConsumptionInactive()
             self:RemoveToggleCap('RULEUTC_ShieldToggle')
         elseif enh == 'ShieldGeneratorField' then
-            self:DestroyShield()    
+            self:DestroyShield()
             ForkThread(function()
-                WaitTicks(1)   
+                WaitTicks(1)
                 self:CreateShield(bp)
-                self:SetEnergyMaintenanceConsumptionOverride(bp.MaintenanceConsumptionPerSecondEnergy or 0)
+                self.EnergyMaintenanceConsumptionOverride = bp.MaintenanceConsumptionPerSecondEnergy or 0
                 self:SetMaintenanceConsumptionActive()
             end)
         elseif enh == 'ShieldGeneratorFieldRemove' then
             self:DestroyShield()
             self:SetMaintenanceConsumptionInactive()
-            self:RemoveToggleCap('RULEUTC_ShieldToggle')    
+            self:RemoveToggleCap('RULEUTC_ShieldToggle')
         elseif enh =='ResourceAllocation' then
             local bp = self:GetBlueprint().Enhancements[enh]
             local bpEcon = self:GetBlueprint().Economy
@@ -147,9 +147,9 @@ UEL0301 = Class(SupportCommander) {
             self:SetIntelRadius('Omni', bpIntel.OmniRadius or 26)
         elseif enh == 'RadarJammer' then
             self:SetIntelRadius('Jammer', bp.NewJammerRadius or 26)
-            self.RadarJammerEnh = true 
+            self.RadarJammerEnh = true
             self:EnableUnitIntel('Enhancement', 'Jammer')
-            self:AddToggleCap('RULEUTC_JammingToggle')              
+            self:AddToggleCap('RULEUTC_JammingToggle')
         elseif enh == 'RadarJammerRemove' then
             local bpIntel = self:GetBlueprint().Intel
             self:SetIntelRadius('Jammer', 0)
@@ -175,14 +175,14 @@ UEL0301 = Class(SupportCommander) {
 
     OnIntelEnabled = function(self)
         SupportCommander.OnIntelEnabled(self)
-        if self.RadarJammerEnh and self:IsIntelEnabled('Jammer') then 
+        if self.RadarJammerEnh and self:IsIntelEnabled('Jammer') then
             if self.IntelEffects then
                 self.IntelEffectsBag = {}
-                self.CreateTerrainTypeEffects( self, self.IntelEffects, 'FXIdle',  self:GetCurrentLayer(), nil, self.IntelEffectsBag )
+                self.CreateTerrainTypeEffects(self, self.IntelEffects, 'FXIdle',  self:GetCurrentLayer(), nil, self.IntelEffectsBag)
             end
-            self:SetEnergyMaintenanceConsumptionOverride(self:GetBlueprint().Enhancements['RadarJammer'].MaintenanceConsumptionPerSecondEnergy or 0)        
+            self.EnergyMaintenanceConsumptionOverride = self:GetBlueprint().Enhancements['RadarJammer'].MaintenanceConsumptionPerSecondEnergy or 0
             self:SetMaintenanceConsumptionActive()
-        end    
+        end
     end,
 
     OnIntelDisabled = function(self)
@@ -192,7 +192,7 @@ UEL0301 = Class(SupportCommander) {
             if self.IntelEffectsBag then
                 EffectUtil.CleanupEffectBag(self,'IntelEffectsBag')
             end
-        end       
+        end
     end
 }
 

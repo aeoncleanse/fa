@@ -337,29 +337,33 @@ URL0001 = Class(ACUUnit, CCommandUnit) {
 
     OnIntelEnabled = function(self)
         ACUUnit.OnIntelEnabled(self)
+
+        local bpEnh = self:GetBlueprint().Enhancements
         if self.CloakEnh and self:IsIntelEnabled('Cloak') then
-            self:SetEnergyMaintenanceConsumptionOverride(self:GetBlueprint().Enhancements['CloakingGenerator'].MaintenanceConsumptionPerSecondEnergy or 0)
+            self.EnergyMaintenanceConsumptionOverride = bpEnh['CloakingGenerator'].MaintenanceConsumptionPerSecondEnergy or 0
             self:SetMaintenanceConsumptionActive()
             if not self.IntelEffectsBag then
                 self.IntelEffectsBag = {}
-                self.CreateTerrainTypeEffects( self, self.IntelEffects.Cloak, 'FXIdle',  self:GetCurrentLayer(), nil, self.IntelEffectsBag )
+                self.CreateTerrainTypeEffects(self, self.IntelEffects.Cloak, 'FXIdle',  self:GetCurrentLayer(), nil, self.IntelEffectsBag)
             end
         elseif self.StealthEnh and self:IsIntelEnabled('RadarStealth') and self:IsIntelEnabled('SonarStealth') then
-            self:SetEnergyMaintenanceConsumptionOverride(self:GetBlueprint().Enhancements['StealthGenerator'].MaintenanceConsumptionPerSecondEnergy or 0)
+            self.EnergyMaintenanceConsumptionOverride = bpEnh['StealthGenerator'].MaintenanceConsumptionPerSecondEnergy or 0
             self:SetMaintenanceConsumptionActive()
             if not self.IntelEffectsBag then
                 self.IntelEffectsBag = {}
-                self.CreateTerrainTypeEffects( self, self.IntelEffects.Field, 'FXIdle',  self:GetCurrentLayer(), nil, self.IntelEffectsBag )
+                self.CreateTerrainTypeEffects(self, self.IntelEffects.Field, 'FXIdle',  self:GetCurrentLayer(), nil, self.IntelEffectsBag)
             end
         end
     end,
 
     OnIntelDisabled = function(self)
         ACUUnit.OnIntelDisabled(self)
+
         if self.IntelEffectsBag then
             EffectUtil.CleanupEffectBag(self,'IntelEffectsBag')
             self.IntelEffectsBag = nil
         end
+
         if self.CloakEnh and not self:IsIntelEnabled('Cloak') then
             self:SetMaintenanceConsumptionInactive()
         elseif self.StealthEnh and not self:IsIntelEnabled('RadarStealth') and not self:IsIntelEnabled('SonarStealth') then
@@ -367,9 +371,6 @@ URL0001 = Class(ACUUnit, CCommandUnit) {
         end
     end,
 
-    -- *****
-    -- Death
-    -- *****
     OnKilled = function(self, instigator, type, overkillRatio)
         local bp
         for k, v in self:GetBlueprint().Buffs do
@@ -377,12 +378,14 @@ URL0001 = Class(ACUUnit, CCommandUnit) {
                 bp = v
             end
         end
-        --if we could find a blueprint with v.Add.OnDeath, then add the buff
+
+        -- If we could find a blueprint with v.Add.OnDeath, then add the buff
         if bp ~= nil then
-            --Apply Buff
+            -- Apply Buff
             self:AddBuff(bp)
         end
-        --otherwise, we should finish killing the unit
+
+        -- Otherwise, we should finish killing the unit
         ACUUnit.OnKilled(self, instigator, type, overkillRatio)
     end
 }
