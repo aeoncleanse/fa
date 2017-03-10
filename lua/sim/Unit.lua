@@ -11,6 +11,8 @@ local EffectTemplate = import('/lua/EffectTemplates.lua')
 local explosion = import('/lua/defaultexplosions.lua')
 
 local EffectUtilities = import('/lua/EffectUtilities.lua')
+local CreateUnitDestructionDebris = EffectUtilities.CreateUnitDestructionDebris
+
 local Game = import('/lua/game.lua')
 local utilities = import('/lua/utilities.lua')
 local Shield = import('/lua/shield.lua').Shield
@@ -1462,48 +1464,6 @@ Unit = Class(moho.unit_methods) {
         explosion.CreateWreckageEffects(self,prop)
 
         return prop
-    end,
-
-    CreateUnitDestructionDebris = function(self, high, low, chassis)
-        local HighDestructionParts = table.getn(self.DestructionPartsHighToss)
-        local LowDestructionParts = table.getn(self.DestructionPartsLowToss)
-        local ChassisDestructionParts = table.getn(self.DestructionPartsChassisToss)
-
-        -- Limit the number of parts that we throw out
-        local HighPartLimit = HighDestructionParts
-        local LowPartLimit = LowDestructionParts
-        local ChassisPartLimit = ChassisDestructionParts
-
-        -- Create projectiles and accelerate them out and away from the unit
-        if high and HighDestructionParts > 0 then
-            HighPartLimit = Random(1, HighDestructionParts)
-            for i = 1, HighPartLimit do
-                self:ShowBone(self.DestructionPartsHighToss[i], false)
-                local boneProj = self:CreateProjectileAtBone('/effects/entities/DebrisBoneAttachHigh01/DebrisBoneAttachHigh01_proj.bp', self.DestructionPartsHighToss[i])
-
-                self:AttachBoneToEntityBone(self.DestructionPartsHighToss[i], boneProj, -1, false)
-            end
-        end
-
-        if low and LowDestructionParts > 0 then
-            LowPartLimit = Random(1, LowDestructionParts)
-            for i = 1, LowPartLimit do
-                self:ShowBone(self.DestructionPartsLowToss[i], false)
-                local boneProj = self:CreateProjectileAtBone('/effects/entities/DebrisBoneAttachLow01/DebrisBoneAttachLow01_proj.bp', self.DestructionPartsLowToss[i])
-
-                self:AttachBoneToEntityBone(self.DestructionPartsLowToss[i], boneProj, -1, false)
-            end
-        end
-
-        if chassis and ChassisDestructionParts > 0 then
-            ChassisPartLimit = Random(1, ChassisDestructionParts)
-            for i = 1, Random(1, ChassisDestructionParts) do
-                self:ShowBone(self.DestructionPartsChassisToss[i], false)
-                local boneProj = self:CreateProjectileAtBone('/effects/entities/DebrisBoneAttachChassis01/DebrisBoneAttachChassis01_proj.bp', self.DestructionPartsChassisToss[i])
-
-                self:AttachBoneToEntityBone(self.DestructionPartsChassisToss[i], boneProj, -1, false)
-            end
-        end
     end,
 
     CreateDestructionEffects = function(self, overKillRatio)

@@ -11,6 +11,7 @@ local ADFPhasonLaser = WeaponsFile.ADFPhasonLaser
 local ADFTractorClaw = WeaponsFile.ADFTractorClaw
 local utilities = import('/lua/utilities.lua')
 local explosion = import('/lua/defaultexplosions.lua')
+local CreateUnitDestructionDebris = import('/lua/EffectUtilities.lua').CreateUnitDestructionDebris
 
 UAL0401 = Class(AWalkingLandUnit) {
     Weapons = {
@@ -75,12 +76,11 @@ UAL0401 = Class(AWalkingLandUnit) {
         -- hopes that this will look better in the future.. =)
         if self.ShowUnitDestructionDebris and overkillRatio then
             if overkillRatio <= 1 then
-                self.CreateUnitDestructionDebris(self, true, true, false)
+                CreateUnitDestructionDebris(self, true, true, false)
             elseif overkillRatio <= 2 then
-                self.CreateUnitDestructionDebris(self, true, true, false)
+                CreateUnitDestructionDebris(self, true, true, false)
             elseif overkillRatio <= 3 then
-                self.CreateUnitDestructionDebris(self, true, true, true)
-                self.CreateUnitDestructionDebris(self, true, true, true)
+                CreateUnitDestructionDebris(self, true, true, true)
             else -- Vaporized
                 self.CreateUnitDestructionDebris(self, true, true, true)
             end

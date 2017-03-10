@@ -13,6 +13,7 @@ local SDFSinnuntheWeapon = WeaponsFile.SDFSinnuntheWeapon
 local SAAOlarisCannonWeapon = WeaponsFile.SAAOlarisCannonWeapon
 local utilities = import('/lua/utilities.lua')
 local explosion = import('/lua/defaultexplosions.lua')
+local CreateUnitDestructionDebris = import('/lua/EffectUtilities.lua').CreateUnitDestructionDebris
 
 XSL0401 = Class(SWalkingLandUnit) {
     SpawnEffects = {
@@ -100,13 +101,13 @@ XSL0401 = Class(SWalkingLandUnit) {
         -- hopes that this will look better in the future.. =)
         if self.ShowUnitDestructionDebris and overkillRatio then
             if overkillRatio <= 1 then
-                self.CreateUnitDestructionDebris(self, true, true, false)
+                CreateUnitDestructionDebris(self, true, true, false)
             elseif overkillRatio <= 2 then
-                self.CreateUnitDestructionDebris(self, true, true, false)
+                CreateUnitDestructionDebris(self, true, true, false)
             elseif overkillRatio <= 3 then
-                self.CreateUnitDestructionDebris(self, true, true, true)
+                CreateUnitDestructionDebris(self, true, true, true)
             else -- Vaporized
-                self.CreateUnitDestructionDebris(self, true, true, true)
+                CreateUnitDestructionDebris(self, true, true, true)
             end
         end
 
