@@ -12,6 +12,7 @@ local CAAAutocannon = CybranWeapons.CAAAutocannon
 local CDFProtonCannonWeapon = CybranWeapons.CDFProtonCannonWeapon
 local CANNaniteTorpedoWeapon = import('/lua/cybranweapons.lua').CANNaniteTorpedoWeapon
 local CIFSmartCharge = import('/lua/cybranweapons.lua').CIFSmartCharge
+local CreateUnitDestructionDebris = import('/lua/EffectUtilities.lua').CreateUnitDestructionDebris
 
 URS0201 = Class(CSeaUnit) {
     SwitchAnims = true,
@@ -132,13 +133,13 @@ URS0201 = Class(CSeaUnit) {
             -- Create Initial explosion effects
             if self.ShowUnitDestructionDebris and overkillRatio then
                 if overkillRatio <= 1 then
-                    self.CreateUnitDestructionDebris(self, true, true, false)
+                    CreateUnitDestructionDebris(self, true, true, false)
                 elseif overkillRatio <= 2 then
-                    self.CreateUnitDestructionDebris(self, true, true, false)
+                    CreateUnitDestructionDebris(self, true, true, false)
                 elseif overkillRatio <= 3 then
-                    self.CreateUnitDestructionDebris(self, true, true, true)
+                    CreateUnitDestructionDebris(self, true, true, true)
                 else -- VAPORIZED
-                    self.CreateUnitDestructionDebris(self, true, true, true)
+                    CreateUnitDestructionDebris(self, true, true, true)
                 end
             end
             WaitSeconds(2)

@@ -8,6 +8,7 @@
 local CStructureUnit = import('/lua/cybranunits.lua').CStructureUnit
 local CKrilTorpedoLauncherWeapon = import('/lua/cybranweapons.lua').CKrilTorpedoLauncherWeapon
 local utilities = import('/lua/utilities.lua')
+local CreateUnitDestructionDebris = import('/lua/EffectUtilities.lua').CreateUnitDestructionDebris
 
 XRB2308 = Class(CStructureUnit) {
     Weapons = {
@@ -114,7 +115,7 @@ XRB2308 = Class(CStructureUnit) {
 
         -- Flying bits of metal and whatnot. More bits for more overkill.
         if self.ShowUnitDestructionDebris and overkillRatio then
-            self.CreateUnitDestructionDebris(self, true, true, overkillRatio > 2)
+            CreateUnitDestructionDebris(self, true, true, overkillRatio > 2)
         end
 
         self.DisallowCollisions = true

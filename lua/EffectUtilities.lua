@@ -1839,3 +1839,46 @@ function DestroyRemainingTeleportChargingEffects(unit, EffectsBag)
         unit.TeleportCybranSphere:Destroy()
     end
 end
+
+-- Metal and flying bits of units when it explodes
+function CreateUnitDestructionDebris(unit, high, low, chassis)
+    local HighDestructionParts = table.getn(unit.DestructionPartsHighToss)
+    local LowDestructionParts = table.getn(unit.DestructionPartsLowToss)
+    local ChassisDestructionParts = table.getn(unit.DestructionPartsChassisToss)
+
+    -- Limit the number of parts that we throw out
+    local HighPartLimit = HighDestructionParts
+    local LowPartLimit = LowDestructionParts
+    local ChassisPartLimit = ChassisDestructionParts
+
+    -- Create projectiles and accelerate them out and away from the unit
+    if high and HighDestructionParts > 0 then
+        HighPartLimit = Random(1, HighDestructionParts)
+        for i = 1, HighPartLimit do
+            unit:ShowBone(unit.DestructionPartsHighToss[i], false)
+            local boneProj = unit:CreateProjectileAtBone('/effects/entities/DebrisBoneAttachHigh01/DebrisBoneAttachHigh01_proj.bp', unit.DestructionPartsHighToss[i])
+
+            unit:AttachBoneToEntityBone(unit.DestructionPartsHighToss[i], boneProj, -1, false)
+        end
+    end
+
+    if low and LowDestructionParts > 0 then
+        LowPartLimit = Random(1, LowDestructionParts)
+        for i = 1, LowPartLimit do
+            unit:ShowBone(unit.DestructionPartsLowToss[i], false)
+            local boneProj = unit:CreateProjectileAtBone('/effects/entities/DebrisBoneAttachLow01/DebrisBoneAttachLow01_proj.bp', unit.DestructionPartsLowToss[i])
+
+            unit:AttachBoneToEntityBone(unit.DestructionPartsLowToss[i], boneProj, -1, false)
+        end
+    end
+
+    if chassis and ChassisDestructionParts > 0 then
+        ChassisPartLimit = Random(1, ChassisDestructionParts)
+        for i = 1, Random(1, ChassisDestructionParts) do
+            unit:ShowBone(unit.DestructionPartsChassisToss[i], false)
+            local boneProj = unit:CreateProjectileAtBone('/effects/entities/DebrisBoneAttachChassis01/DebrisBoneAttachChassis01_proj.bp', unit.DestructionPartsChassisToss[i])
+
+            unit:AttachBoneToEntityBone(unit.DestructionPartsChassisToss[i], boneProj, -1, false)
+        end
+    end
+end
