@@ -1046,6 +1046,7 @@ Unit = Class(moho.unit_methods) {
     UpdateConsumptionValues = function(self)
         local energy_rate = 0
         local mass_rate = 0
+        local bpEconomy = GetBlueprint(self).Economy
 
         if self.ActiveConsumption then
             local focus = self:GetFocusUnit()
@@ -1054,6 +1055,7 @@ Unit = Class(moho.unit_methods) {
             local energy = 0
             local targetData
             local baseData
+            local bpFocus = GetBlueprint(focus)
 
             if focus then -- Always inherit work status of focus
                 self:InheritWork(focus)
@@ -1065,13 +1067,13 @@ Unit = Class(moho.unit_methods) {
                 local originalBuilder = focus.originalBuilder
 
                 if self:IsUnitState('Upgrading') then
-                    baseData = GetBlueprint(self).Economy -- Upgrading myself, subtract ev. baseCost
+                    baseData = bpEconomy -- Upgrading myself, subtract ev. baseCost
                 elseif originalBuilder and not originalBuilder.Dead and originalBuilder:IsUnitState('Upgrading') and originalBuilder:GetFocusUnit() == focus then
-                    baseData = GetBlueprint(originalBuilder).Economy
+                    baseData = bpEconomy
                 end
 
                 if baseData then
-                    targetData = GetBlueprint(focus).Economy
+                    targetData = bpFocus.Economy
                 end
             end
 
@@ -1084,7 +1086,7 @@ Unit = Class(moho.unit_methods) {
                     energy = (energy / siloBuildRate) * (self:GetBuildRate() or 1)
                     mass = (mass / siloBuildRate) * (self:GetBuildRate() or 1)
                 else
-                    time, energy, mass = GetConstructEconomyModel(self, GetBlueprint(focus))
+                    time, energy, mass = GetConstructEconomyModel(self, bpFocus)
                 end
             end
 
@@ -1096,10 +1098,9 @@ Unit = Class(moho.unit_methods) {
 
         self:UpdateAssistersConsumption()
 
-        local myBlueprint = GetBlueprint(self)
         if self.MaintenanceConsumption then
-            local mai_energy = (self.EnergyMaintenanceConsumptionOverride or myBlueprint.Economy.MaintenanceConsumptionPerSecondEnergy)  or 0
-            local mai_mass = myBlueprint.Economy.MaintenanceConsumptionPerSecondMass or 0
+            local mai_energy = (self.EnergyMaintenanceConsumptionOverride or bpEconomy.MaintenanceConsumptionPerSecondEnergy)  or 0
+            local mai_mass = bpEconomy.MaintenanceConsumptionPerSecondMass or 0
 
             -- Apply economic bonuses
             mai_energy = mai_energy * (100 + self.EnergyModifier) * (self.EnergyMaintAdjMod or 1) * 0.01
@@ -1110,8 +1111,8 @@ Unit = Class(moho.unit_methods) {
         end
 
          -- Apply minimum rates
-        energy_rate = mathMax(energy_rate, myBlueprint.Economy.MinConsumptionPerSecondEnergy or 0)
-        mass_rate = mathMax(mass_rate, myBlueprint.Economy.MinConsumptionPerSecondMass or 0)
+        energy_rate = mathMax(energy_rate, bpEconomy.MinConsumptionPerSecondEnergy or 0)
+        mass_rate = mathMax(mass_rate, bpEconomy.MinConsumptionPerSecondMass or 0)
 
         self:SetConsumptionPerSecondEnergy(energy_rate)
         self:SetConsumptionPerSecondMass(mass_rate)
