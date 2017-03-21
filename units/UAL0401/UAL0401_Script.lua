@@ -64,10 +64,11 @@ UAL0401 = Class(AWalkingLandUnit) {
             WaitFor(self.DeathAnimManip)
         end
 
-        local bp = self:GetBlueprint()
-        for i, numWeapons in bp.Weapon do
-            if bp.Weapon[i].Label == 'CollossusDeath' then
-                DamageArea(self, self:GetPosition(), bp.Weapon[i].DamageRadius, bp.Weapon[i].Damage, bp.Weapon[i].DamageType, bp.Weapon[i].DamageFriendly)
+        local bpWep = self:GetBlueprint().Weapon
+        for i, numWeapons in bpWep do
+            local wep = bpWep[i]
+            if wep.Label == 'CollossusDeath' then
+                DamageArea(self, self:GetPosition(), wep.DamageRadius, wep.Damage, wep.DamageType, wep.DamageFriendly)
                 break
             end
         end
