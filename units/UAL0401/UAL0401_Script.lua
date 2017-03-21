@@ -12,6 +12,7 @@ local ADFTractorClaw = WeaponsFile.ADFTractorClaw
 local utilities = import('/lua/utilities.lua')
 local explosion = import('/lua/defaultexplosions.lua')
 local CreateUnitDestructionDebris = import('/lua/EffectUtilities.lua').CreateUnitDestructionDebris
+local CreateDefaultHitExplosionAtBone = explosion.CreateDefaultHitExplosionAtBone
 
 UAL0401 = Class(AWalkingLandUnit) {
     Weapons = {
@@ -39,21 +40,25 @@ UAL0401 = Class(AWalkingLandUnit) {
     end,
 
     DeathThread = function(self, overkillRatio , instigator)
-        self:PlayUnitSound('Destroyed')
-        explosion.CreateDefaultHitExplosionAtBone(self, 'Torso', 4.0)
+		self:PlayUnitSound('Destroyed')
+        CreateDefaultHitExplosionAtBone(self, 'Torso', 4.0)
         explosion.CreateDebrisProjectiles(self, explosion.GetAverageBoundingXYZRadius(self), {self:GetUnitSizes()})
         WaitSeconds(2)
-        explosion.CreateDefaultHitExplosionAtBone(self, 'Right_Leg_B02', 1.0)
-        WaitSeconds(0.1)
-        explosion.CreateDefaultHitExplosionAtBone(self, 'Right_Leg_B01', 1.0)
-        WaitSeconds(0.1)
-        explosion.CreateDefaultHitExplosionAtBone(self, 'Left_Arm_B02', 1.0)
-        WaitSeconds(0.3)
-        explosion.CreateDefaultHitExplosionAtBone(self, 'Right_Arm_B01', 1.0)
-        explosion.CreateDefaultHitExplosionAtBone(self, 'Right_Leg_B01', 1.0)
 
+        CreateDefaultHitExplosionAtBone(self, 'Right_Leg_B02', 1.0)
+        WaitSeconds(0.1)
+
+        CreateDefaultHitExplosionAtBone(self, 'Right_Leg_B01', 1.0)
+        WaitSeconds(0.1)
+
+        CreateDefaultHitExplosionAtBone(self, 'Left_Arm_B02', 1.0)
+        WaitSeconds(0.3)
+
+        CreateDefaultHitExplosionAtBone(self, 'Right_Arm_B01', 1.0)
+        CreateDefaultHitExplosionAtBone(self, 'Right_Leg_B01', 1.0)
         WaitSeconds(3.5)
-        explosion.CreateDefaultHitExplosionAtBone(self, 'Torso', 5.0)
+
+        CreateDefaultHitExplosionAtBone(self, 'Torso', 5.0)
 
         if self.DeathAnimManip then
             WaitFor(self.DeathAnimManip)
