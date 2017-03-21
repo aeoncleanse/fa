@@ -14,6 +14,7 @@ local SAAOlarisCannonWeapon = WeaponsFile.SAAOlarisCannonWeapon
 local utilities = import('/lua/utilities.lua')
 local EffectUtil = import('/lua/EffectUtilities.lua')
 local explosion = import('/lua/defaultexplosions.lua')
+local CreateBuildEffects = import('/lua/EffectUtilities.lua').CreateSeraphimExperimentalBuildBaseThread
 local CreateUnitDestructionDebris = import('/lua/EffectUtilities.lua').CreateUnitDestructionDebris
 
 XSL0401 = Class(SWalkingLandUnit) {
@@ -57,7 +58,7 @@ XSL0401 = Class(SWalkingLandUnit) {
 
     StartBeingBuiltEffects = function(self, builder, layer)
         SWalkingLandUnit.StartBeingBuiltEffects(self, builder, layer)
-        self:ForkThread(EffectUtil.CreateSeraphimExperimentalBuildBaseThread, builder, self.OnBeingBuiltEffectsBag)
+        self:ForkThread(CreateBuildEffects, builder, self.OnBeingBuiltEffectsBag)
     end,
 
     DeathThread = function(self, overkillRatio , instigator)
@@ -87,6 +88,7 @@ XSL0401 = Class(SWalkingLandUnit) {
             end
         end
         WaitSeconds(3.5)
+
         explosion.CreateDefaultHitExplosionAtBone(self, 'Torso', 5.0)
 
         if self.DeathAnimManip then
