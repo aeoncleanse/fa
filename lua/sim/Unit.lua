@@ -84,6 +84,7 @@ local IsAlly = IsAlly
 -- Deprecated function warning flags
 local GetUnitBeingBuiltWarning = false
 local GetBuildCostsWarning = false
+local OnCreatedWarning = false
 
 SyncMeta = {
     __index = function(t, key)
@@ -4216,7 +4217,6 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
-    OnCreated = function(self) end,
     -- Buff Fields
     InitBuffFields = function(self)
         -- Creates all buff fields
@@ -4344,5 +4344,14 @@ Unit = Class(moho.unit_methods) {
         end
 
         return GetConstructEconomyModel(self, target_bp.Economy)
+    end,
+    
+    OnCreated = function(self)
+        if not OnCreatedWarning then
+            WARN("Deprecated function OnCreated called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            OnCreatedWarning = true
+        end
     end,
 }
