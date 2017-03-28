@@ -14,6 +14,7 @@ local ApplyBuff = import('/lua/sim/buff.lua').ApplyBuff
 local ApplyCheatBuffs = import('/lua/ai/aiutilities.lua').ApplyCheatBuffs
 local BuffFieldBlueprints = import('/lua/sim/BuffField.lua').BuffFieldBlueprints
 local wreckageCreateWreckage = import('/lua/wreckage.lua').CreateWreckage
+local setEmpty = import('/lua/system/setutils.lua').Empty
 
 local EffectUtilities = import('/lua/EffectUtilities.lua')
 local CleanupEffectBag = EffectUtilities.CleanupEffectBag
@@ -28,8 +29,6 @@ local PersonalBubble = import('/lua/shield.lua').PersonalBubble
 local TransportShield = import('/lua/shield.lua').TransportShield
 local PersonalShield = import('/lua/shield.lua').PersonalShield
 local AntiArtilleryShield = import('/lua/shield.lua').AntiArtilleryShield
-
-local Set = import('/lua/system/setutils.lua')
 
 -- Localised global functions for speed. ~10% for single references, ~30% for double (eg table.insert)
 local tableInsert = table.insert
@@ -2593,10 +2592,11 @@ Unit = Class(moho.unit_methods) {
         local function DisableOneIntel(disabler, intel)
             local intDisabled = false
             if Set.Empty(self.IntelDisables[intel]) then
-                local active = self:GetBlueprint().Intel.ActiveIntel
+                local active = GetBlueprint(self).Intel.ActiveIntel
                 if active and active[intel] then
                     return
                 end
+
                 self:DisableIntel(intel)
 
                 -- Handle the cloak FX timing
@@ -2639,7 +2639,7 @@ Unit = Class(moho.unit_methods) {
             local intEnabled = false
             if self.IntelDisables[intel][disabler] then -- Must check for explicit true contained
                 self.IntelDisables[intel][disabler] = nil
-                if Set.Empty(self.IntelDisables[intel]) then
+                if setEmpty(self.IntelDisables[intel]) then
                     self:EnableIntel(intel)
 
                     -- Handle the cloak FX timing
