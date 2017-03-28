@@ -8,6 +8,7 @@ local ItemList = import('/lua/maui/itemlist.lua').ItemList
 local Prefs = import('/lua/user/prefs.lua')
 local options = Prefs.GetFromCurrentProfile('options')
 local UnitDescriptions = import('/lua/ui/help/unitdescription.lua').Description
+local GetConstructEconomyModel = import('/lua/game.lua').GetConstructEconomyModel
 
 local controls = import('/lua/ui/controls.lua').Get()
 
@@ -113,7 +114,7 @@ function ShowEnhancement(bp, bpID, iconID, iconPrefix, userUnit)
     local showUpKeep = false
     local time, energy, mass
     if bp.Icon ~= nil and not string.find(bp.Name, 'Remove') then
-        time, energy, mass = import('/lua/game.lua').GetConstructEconomyModel(userUnit, bp)
+        time, energy, mass = GetConstructEconomyModel(userUnit, bp)
         time = math.max(time, 1)
         showUpKeep = DisplayResources(bp, time, energy, mass)
         View.TimeStat.Value:SetFont(UIUtil.bodyFont, 14)
@@ -331,9 +332,9 @@ function Show(bp, buildingUnit, bpID)
         local time, energy, mass
 
         if performUpgrade then
-            time, energy, mass = import('/lua/game.lua').GetConstructEconomyModel(buildingUnit, bp.Economy, builderBp.Economy)
+            time, energy, mass = GetConstructEconomyModel(buildingUnit, bp.Economy, builderBp.Economy)
         else
-            time, energy, mass = import('/lua/game.lua').GetConstructEconomyModel(buildingUnit, bp.Economy)
+            time, energy, mass = GetConstructEconomyModel(buildingUnit, bp.Economy)
         end
 
         time = math.max(time, 1)

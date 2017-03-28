@@ -14,6 +14,8 @@ local EffectUtilities = import('/lua/EffectUtilities.lua')
 local CleanupEffectBag = EffectUtilities.CleanupEffectBag
 local CreateUnitDestructionDebris = EffectUtilities.CreateUnitDestructionDebris
 
+local GetConstructEconomyModel = import('/lua/game.lua').GetConstructEconomyModel
+
 local Game = import('/lua/game.lua')
 local utilities = import('/lua/utilities.lua')
 local Shield = import('/lua/shield.lua').Shield
@@ -1074,15 +1076,15 @@ Unit = Class(moho.unit_methods) {
             end
 
             if targetData then -- Upgrade/enhancement
-                time, energy, mass = Game.GetConstructEconomyModel(self, targetData, baseData)
+                time, energy, mass = GetConstructEconomyModel(self, targetData, baseData)
             elseif focus then -- Building/repairing something
                 if focus:IsUnitState('SiloBuildingAmmo') then
                     local siloBuildRate = focus:GetBuildRate() or 1
-                    time, energy, mass = focus:GetBuildCosts(focus.SiloProjectile)
+                    time, energy, mass = GetConstructEconomyModel(focus, focus.SiloProjectile)
                     energy = (energy / siloBuildRate) * (self:GetBuildRate() or 1)
                     mass = (mass / siloBuildRate) * (self:GetBuildRate() or 1)
                 else
-                    time, energy, mass = self:GetBuildCosts(GetBlueprint(focus))
+                    time, energy, mass = GetConstructEconomyModel(self, GetBlueprint(focus))
                 end
             end
 
