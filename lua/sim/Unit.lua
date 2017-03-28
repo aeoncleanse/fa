@@ -83,6 +83,7 @@ local IsAlly = IsAlly
 local GetUnitBeingBuiltWarning = false
 local GetBuildCostsWarning = false
 local OnCreatedWarning = false
+local CheckCanTakeDamageWarning = false
 
 SyncMeta = {
     __index = function(t, key)
@@ -1143,10 +1144,6 @@ Unit = Class(moho.unit_methods) {
     -------------------------------------------------------------------------------------------
     SetCanTakeDamage = function(self, val)
         self.CanTakeDamage = val
-    end,
-
-    CheckCanTakeDamage = function(self)
-        return self.CanTakeDamage
     end,
 
     OnDamage = function(self, instigator, amount, vector, damageType)
@@ -4256,7 +4253,7 @@ Unit = Class(moho.unit_methods) {
 
         return GetConstructEconomyModel(self, target_bp.Economy)
     end,
-    
+
     OnCreated = function(self)
         if not OnCreatedWarning then
             WARN("Deprecated function OnCreated called at")
@@ -4264,5 +4261,16 @@ Unit = Class(moho.unit_methods) {
             WARN("Further warnings of this will be suppressed")
             OnCreatedWarning = true
         end
+    end,
+
+    CheckCanTakeDamage = function(self)
+        if not CheckCanTakeDamageWarning then
+            WARN("Deprecated function CheckCanTakeDamage called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            CheckCanTakeDamageWarning = true
+        end
+
+        return self.CanTakeDamage
     end,
 }
