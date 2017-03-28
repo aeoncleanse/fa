@@ -84,6 +84,7 @@ local GetUnitBeingBuiltWarning = false
 local GetBuildCostsWarning = false
 local OnCreatedWarning = false
 local CheckCanTakeDamageWarning = false
+local SetCanTakeDamageWarning = false
 
 SyncMeta = {
     __index = function(t, key)
@@ -288,7 +289,7 @@ Unit = Class(moho.unit_methods) {
 
         self:SetIntelRadius('Vision', bp.Intel.VisionRadius or 0)
 
-        self:SetCanTakeDamage(true)
+        self.CanTakeDamage = true
         self:SetCanBeKilled(true)
 
         local bpDeathAnim = bp.Display.AnimationDeath
@@ -1142,9 +1143,6 @@ Unit = Class(moho.unit_methods) {
     -------------------------------------------------------------------------------------------
     -- DAMAGE
     -------------------------------------------------------------------------------------------
-    SetCanTakeDamage = function(self, val)
-        self.CanTakeDamage = val
-    end,
 
     OnDamage = function(self, instigator, amount, vector, damageType)
         if self.CanTakeDamage then
@@ -1889,7 +1887,7 @@ Unit = Class(moho.unit_methods) {
         if self.buildBots then
             for _, bot in self.buildBots do
                 if not bot:BeenDestroyed() then
-                    bot:SetCanTakeDamage(true)
+                    bot.CanTakeDamage = true
                     bot:SetCanBeKilled(true)
 
                     bot:Kill(nil, "Normal", 1)
@@ -2134,7 +2132,7 @@ Unit = Class(moho.unit_methods) {
             local newHealthAmount = GetMaxHealth(builder) * (1 - damagePercent) -- HP for upgraded building
             builder:SetHealth(builder, newHealthAmount) -- Seems like the engine uses builder to determine new HP
             self.DisallowCollisions = false
-            self:SetCanTakeDamage(true)
+            self.CanTakeDamage = true
             self:RevertCollisionShape()
             self.IsUpgrade = nil
         end
@@ -2425,7 +2423,7 @@ Unit = Class(moho.unit_methods) {
         local bp = GetBlueprint(built)
         if order == 'Upgrade' and bp.General.UpgradesFrom == self:GetUnitId() then
             built.DisallowCollisions = true
-            built:SetCanTakeDamage(false)
+            built.CanTakeDamage = false
             built:SetCollisionShape('None')
             built.IsUpgrade = true
         end
@@ -3926,7 +3924,7 @@ Unit = Class(moho.unit_methods) {
             ShowBone(self, 0, true)
         end
 
-        self:SetCanTakeDamage(not loading)
+        self.CanTakeDamage = not loading
         self:SetDoNotTarget(loading)
         self:SetReclaimable(not loading)
         self:SetCapturable(not loading)
@@ -4272,5 +4270,16 @@ Unit = Class(moho.unit_methods) {
         end
 
         return self.CanTakeDamage
+    end,
+
+    SetCanTakeDamage = function(self, val)
+        if not SetCanTakeDamageWarning then
+            WARN("Deprecated function SetCanTakeDamage called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            SetCanTakeDamageWarning = true
+        end
+
+        self.CanTakeDamage = val
     end,
 }
