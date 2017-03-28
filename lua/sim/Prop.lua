@@ -13,6 +13,7 @@ local minimumLabelMass = 10
 -- Deprecated function warning flags
 local SetCanTakeDamageWarning = false
 local SetCanBeKilledWarning = false
+local CheckCanBeKilledWarning = false
 
 Prop = Class(moho.prop_methods, Entity) {
     -- Do not call the base class __init and __post_init, we already have a c++ object
@@ -91,10 +92,6 @@ Prop = Class(moho.prop_methods, Entity) {
     -- Returns the cache position of the prop, since it doesn't move, it's a big optimization
     GetCachePosition = function(self)
         return self.CachePosition or self:GetPosition()
-    end,
-
-    CheckCanBeKilled = function(self, other)
-        return self.CanBeKilled
     end,
 
     OnKilled = function(self, instigator, type, exceessDamageRatio)
@@ -340,5 +337,16 @@ Prop = Class(moho.prop_methods, Entity) {
         end
 
         self.CanBeKilled = val
+    end,
+
+    CheckCanBeKilled = function(self, other)
+        if not CheckCanBeKilledWarning then
+            WARN("Deprecated function CheckCanBeKilled called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            CheckCanBeKilledWarning = true
+        end
+
+        return self.CanBeKilled
     end,
 }
