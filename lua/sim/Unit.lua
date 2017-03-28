@@ -10,6 +10,7 @@ local Entity = import('/lua/sim/Entity.lua').Entity
 local EffectTemplate = import('/lua/EffectTemplates.lua')
 local explosion = import('/lua/defaultexplosions.lua')
 local utilities = import('/lua/utilities.lua')
+local ApplyBuff = import('/lua/sim/buff.lua').ApplyBuff
 
 local EffectUtilities = import('/lua/EffectUtilities.lua')
 local CleanupEffectBag = EffectUtilities.CleanupEffectBag
@@ -25,7 +26,6 @@ local TransportShield = import('/lua/shield.lua').TransportShield
 local PersonalShield = import('/lua/shield.lua').PersonalShield
 local AntiArtilleryShield = import('/lua/shield.lua').AntiArtilleryShield
 
-local Buff = import('/lua/sim/buff.lua')
 local AIUtils = import('/lua/ai/aiutilities.lua')
 local BuffFieldBlueprints = import('/lua/sim/BuffField.lua').BuffFieldBlueprints
 local Wreckage = import('/lua/wreckage.lua')
