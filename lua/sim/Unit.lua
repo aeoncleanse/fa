@@ -202,6 +202,7 @@ Unit = Class(moho.unit_methods) {
             ProjectileDamaged = {},
             SpecialToggleEnableFunction = false,
             SpecialToggleDisableFunction = false,
+
             OnAttachedToTransport = {}, -- Returns self, transport, bone
             OnDetachedFromTransport = {}, -- Returns self, transport, bone
         }
@@ -215,8 +216,6 @@ Unit = Class(moho.unit_methods) {
         -- Set number of effects per damage depending on its volume
         local x, y, z = self:GetUnitSizes()
         local vol = x * y * z
-
-        self:ShowPresetEnhancementBones()
 
         local damageamounts = 1
         if vol >= 20 then
@@ -2208,10 +2207,6 @@ Unit = Class(moho.unit_methods) {
             return false -- Report failure of OnStopBeingBuilt
         end
 
-        if bp.EnhancementPresetAssigned then
-            self:ForkThread(self.CreatePresetEnhancementsThread)
-        end
-
         -- Don't try sending a Notify message from here if we're an ACU
         if self.techCategory ~= 'COMMAND' then
             self:SendNotifyMessage('completed')
@@ -2262,87 +2257,6 @@ Unit = Class(moho.unit_methods) {
     OnSiloBuildEnd = function(self, weapon)
         self.SiloWeapon = nil
         self.SiloProjectile = nil
-    end,
-
-    -------------------------------------------------------------------------------------------
-    -- UNIT ENHANCEMENT PRESETS
-    -------------------------------------------------------------------------------------------
-    ShowPresetEnhancementBones = function(self)
-        -- Hide bones not involved in the preset enhancements.
-        -- Useful during the build process to show the contours of the unit being built. Only visual.
-        local bp = GetBlueprint(self)
-        if bp.Enhancements and (bp.CategoriesHash.USEBUILDPRESETS or bp.CategoriesHash.ISPREENHANCEDUNIT) then
-
-            -- Create a blank slate: Hide all enhancement bones as specified in the unit BP
-            for k, enh in bp.Enhancements do
-                if enh.HideBones then
-                    for _, bone in enh.HideBones do
-                        HideBone(self, bone, true)
-                    end
-                end
-            end
-
-            -- For the barebone version we're done here. For the presets versions: show the bones of the enhancements we'll create later on
-            if bp.EnhancementPresetAssigned then
-                for _, v in bp.EnhancementPresetAssigned.Enhancements do
-                    -- First show all relevant bones
-                    if bp.Enhancements[v] and bp.Enhancements[v].ShowBones then
-                        for _, bone in bp.Enhancements[v].ShowBones do
-                            ShowBone(self, bone, true)
-                        end
-                    end
-
-                    -- Now hide child bones of previously revealed bones, that should remain hidden
-                    if bp.Enhancements[v] and bp.Enhancements[v].HideBones then
-                        for _, bone in bp.Enhancements[v].HideBones do
-                            HideBone(self, bone, true)
-                        end
-                    end
-                end
-            end
-        end
-    end,
-
-    CreatePresetEnhancements = function(self)
-        local bp = GetBlueprint(self)
-        if bp.Enhancements and bp.EnhancementPresetAssigned and bp.EnhancementPresetAssigned.Enhancements then
-            for k, v in bp.EnhancementPresetAssigned.Enhancements do
-                -- Enhancements may already have been created by SimUtils.TransferUnitsOwnership
-                if not self:HasEnhancement(v) then
-                    self:CreateEnhancement(v)
-                end
-            end
-        end
-    end,
-
-    CreatePresetEnhancementsThread = function(self)
-        -- Creating the preset enhancements on SCUs after they've been constructed. Delaying this by 1 tick to fix a problem where cloak and
-        -- stealth enhancements work incorrectly.
-        WaitTicks(1)
-        if self and not self.Dead then
-            self:CreatePresetEnhancements()
-        end
-    end,
-
-    ShowEnhancementBones = function(self)
-        -- Hide and show certain bones based on available enhancements
-        local bp = GetBlueprint(self)
-        if bp.Enhancements then
-            for _, enh in bp.Enhancements do
-                if enh.HideBones then
-                    for _, bone in enh.HideBones do
-                        HideBone(self, bone, true)
-                    end
-                end
-            end
-            for k, enh in bp.Enhancements do
-                if self:HasEnhancement(k) and enh.ShowBones then
-                    for _, bone in enh.ShowBones do
-                        ShowBone(self, bone, true)
-                    end
-                end
-            end
-        end
     end,
 
     ----------------------------------------------------------------------------------------------

@@ -7,12 +7,12 @@
 
 local Shield = import('/lua/shield.lua').Shield
 local EffectUtil = import('/lua/EffectUtilities.lua')
-local CommandUnit = import('/lua/defaultunits.lua').CommandUnit
+local SupportCommander = import('/lua/defaultunits.lua').SupportCommander
 local TWeapons = import('/lua/terranweapons.lua')
 local TDFHeavyPlasmaCannonWeapon = TWeapons.TDFHeavyPlasmaCannonWeapon
 local SCUDeathWeapon = import('/lua/sim/defaultweapons.lua').SCUDeathWeapon
 
-UEL0301 = Class(CommandUnit) {
+UEL0301 = Class(SupportCommander) {
     IntelEffects = {
         {
             Bones = {
@@ -29,7 +29,7 @@ UEL0301 = Class(CommandUnit) {
     },
 
     OnCreate = function(self)
-        CommandUnit.OnCreate(self)
+        SupportCommander.OnCreate(self)
         self:SetCapturable(false)
         self:HideBone('Jetpack', true)
         self:HideBone('SAM', true)
@@ -37,11 +37,11 @@ UEL0301 = Class(CommandUnit) {
     end,
 
     __init = function(self)
-        CommandUnit.__init(self, 'RightHeavyPlasmaCannon')
+        SupportCommander.__init(self, 'RightHeavyPlasmaCannon')
     end,
 
     OnStopBeingBuilt = function(self, builder, layer)
-        CommandUnit.OnStopBeingBuilt(self, builder, layer)
+        SupportCommander.OnStopBeingBuilt(self, builder, layer)
         -- Block Jammer until Enhancement is built
         self:DisableUnitIntel('Enhancement', 'Jammer')
     end,
@@ -84,7 +84,7 @@ UEL0301 = Class(CommandUnit) {
     end,
 
     CreateEnhancement = function(self, enh)
-        CommandUnit.CreateEnhancement(self, enh)
+        SupportCommander.CreateEnhancement(self, enh)
         local bp = self:GetBlueprint().Enhancements[enh]
         if not bp then return end
         if enh == 'Pod' then
@@ -176,7 +176,7 @@ UEL0301 = Class(CommandUnit) {
     end,
 
     OnIntelEnabled = function(self)
-        CommandUnit.OnIntelEnabled(self)
+        SupportCommander.OnIntelEnabled(self)
         if self.RadarJammerEnh and self:IsIntelEnabled('Jammer') then
             if self.IntelEffects then
                 self.IntelEffectsBag = {}
@@ -188,7 +188,7 @@ UEL0301 = Class(CommandUnit) {
     end,
 
     OnIntelDisabled = function(self)
-        CommandUnit.OnIntelDisabled(self)
+        SupportCommander.OnIntelDisabled(self)
         if self.RadarJammerEnh and not self:IsIntelEnabled('Jammer') then
             self:SetMaintenanceConsumptionInactive()
             if self.IntelEffectsBag then

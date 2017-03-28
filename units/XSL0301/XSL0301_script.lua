@@ -5,7 +5,7 @@
 -- Copyright © 2007 Gas Powered Games, Inc.  All rights reserved.
 -----------------------------------------------------------------
 
-local CommandUnit = import('/lua/defaultunits.lua').CommandUnit
+local SupportCommander = import('/lua/defaultunits.lua').SupportCommander
 local SWeapons = import('/lua/seraphimweapons.lua')
 local Buff = import('/lua/sim/Buff.lua')
 local SCUDeathWeapon = import('/lua/sim/defaultweapons.lua').SCUDeathWeapon
@@ -14,7 +14,7 @@ local SDFLightChronotronCannonWeapon = SWeapons.SDFLightChronotronCannonWeapon
 local SDFOverChargeWeapon = SWeapons.SDFLightChronotronCannonOverchargeWeapon
 local SIFLaanseTacticalMissileLauncher = SWeapons.SIFLaanseTacticalMissileLauncher
 
-XSL0301 = Class(CommandUnit) {
+XSL0301 = Class(SupportCommander) {
     Weapons = {
         LightChronatronCannon = Class(SDFLightChronotronCannonWeapon) {},
         DeathWeapon = Class(SCUDeathWeapon) {},
@@ -29,11 +29,11 @@ XSL0301 = Class(CommandUnit) {
     },
 
     __init = function(self)
-        CommandUnit.__init(self, 'LightChronatronCannon')
+        SupportCommander.__init(self, 'LightChronatronCannon')
     end,
 
     OnCreate = function(self)
-        CommandUnit.OnCreate(self)
+        SupportCommander.OnCreate(self)
         self:SetCapturable(false)
         self:HideBone('Back_Upgrade', true)
         self:SetupBuildBones()
@@ -46,7 +46,7 @@ XSL0301 = Class(CommandUnit) {
     end,
 
     CreateEnhancement = function(self, enh)
-        CommandUnit.CreateEnhancement(self, enh)
+        SupportCommander.CreateEnhancement(self, enh)
         local bp = self:GetBlueprint().Enhancements[enh]
         if not bp then return end
         -- Teleporter

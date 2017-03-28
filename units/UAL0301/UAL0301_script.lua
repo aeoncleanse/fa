@@ -5,25 +5,25 @@
 -- Copyright © 2005 Gas Powered Games, Inc.  All rights reserved.
 -----------------------------------------------------------------
 
-local CommandUnit = import('/lua/defaultunits.lua').CommandUnit
+local SupportCommander = import('/lua/defaultunits.lua').SupportCommander
 local AWeapons = import('/lua/aeonweapons.lua')
 local ADFReactonCannon = AWeapons.ADFReactonCannon
 local SCUDeathWeapon = import('/lua/sim/defaultweapons.lua').SCUDeathWeapon
 local EffectUtil = import('/lua/EffectUtilities.lua')
 local Buff = import('/lua/sim/Buff.lua')
 
-UAL0301 = Class(CommandUnit) {
+UAL0301 = Class(SupportCommander) {
     Weapons = {
         RightReactonCannon = Class(ADFReactonCannon) {},
         DeathWeapon = Class(SCUDeathWeapon) {},
     },
 
     __init = function(self)
-        CommandUnit.__init(self, 'RightReactonCannon')
+        SupportCommander.__init(self, 'RightReactonCannon')
     end,
 
     OnStopBuild = function(self, unitBeingBuilt)
-        CommandUnit.OnStopBuild(self, unitBeingBuilt)
+        SupportCommander.OnStopBuild(self, unitBeingBuilt)
         self:BuildManipulatorSetEnabled(false)
         self.BuildArmManipulator:SetPrecedence(0)
         self:SetWeaponEnabledByLabel('RightReactonCannon', true)
@@ -34,7 +34,7 @@ UAL0301 = Class(CommandUnit) {
     end,
 
     OnCreate = function(self)
-        CommandUnit.OnCreate(self)
+        SupportCommander.OnCreate(self)
         self:SetCapturable(false)
         self:HideBone('Turbine', true)
         self:SetupBuildBones()
@@ -45,7 +45,7 @@ UAL0301 = Class(CommandUnit) {
     end,
 
     CreateEnhancement = function(self, enh)
-        CommandUnit.CreateEnhancement(self, enh)
+        SupportCommander.CreateEnhancement(self, enh)
         local bp = self:GetBlueprint().Enhancements[enh]
         if not bp then return end
         -- Teleporter

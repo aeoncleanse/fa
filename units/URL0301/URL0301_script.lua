@@ -5,7 +5,7 @@
 -- Copyright Š 2005 Gas Powered Games, Inc.  All rights reserved.
 -----------------------------------------------------------------
 
-local CCommandUnit = import('/lua/cybranunits.lua').CCommandUnit
+local SupportCommander = import('/lua/cybranunits.lua').SupportCommander
 local CWeapons = import('/lua/cybranweapons.lua')
 local EffectUtil = import('/lua/EffectUtilities.lua')
 local Buff = import('/lua/sim/Buff.lua')
@@ -13,7 +13,7 @@ local CAAMissileNaniteWeapon = CWeapons.CAAMissileNaniteWeapon
 local CDFLaserDisintegratorWeapon = CWeapons.CDFLaserDisintegratorWeapon02
 local SCUDeathWeapon = import('/lua/sim/defaultweapons.lua').SCUDeathWeapon
 
-URL0301 = Class(CCommandUnit) {
+URL0301 = Class(SupportCommander) {
     LeftFoot = 'Left_Foot02',
     RightFoot = 'Right_Foot02',
 
@@ -31,7 +31,7 @@ URL0301 = Class(CCommandUnit) {
 
     -- Creation
     OnCreate = function(self)
-        CCommandUnit.OnCreate(self)
+        SupportCommander.OnCreate(self)
         self:SetCapturable(false)
         self:HideBone('AA_Gun', true)
         self:HideBone('Power_Pack', true)
@@ -46,7 +46,7 @@ URL0301 = Class(CCommandUnit) {
     end,
 
     __init = function(self)
-        CCommandUnit.__init(self, 'RightDisintegrator')
+        SupportCommander.__init(self, 'RightDisintegrator')
     end,
 
     -- Engineering effects
@@ -55,8 +55,8 @@ URL0301 = Class(CCommandUnit) {
        EffectUtil.CreateCybranBuildBeams(self, unitBeingBuilt, self:GetBlueprint().General.BuildBones.BuildEffectBones, self.BuildEffectsBag)
     end,
 
-    OnStopBeingBuilt = function(self, builder, layer)
-        CCommandUnit.OnStopBeingBuilt(self, builder, layer)
+    OnStopBeingBuilt = function(self,builder,layer)
+        SupportCommander.OnStopBeingBuilt(self,builder,layer)
         self:BuildManipulatorSetEnabled(false)
         self:SetMaintenanceConsumptionInactive()
         -- Disable enhancement-based Intels until enhancements are built
@@ -69,7 +69,7 @@ URL0301 = Class(CCommandUnit) {
 
     -- Enhancements
     CreateEnhancement = function(self, enh)
-        CCommandUnit.CreateEnhancement(self, enh)
+        SupportCommander.CreateEnhancement(self, enh)
         local bp = self:GetBlueprint().Enhancements[enh]
         if not bp then return end
         if enh == 'CloakingGenerator' then
@@ -126,7 +126,7 @@ URL0301 = Class(CCommandUnit) {
             self:HideBone('AA_Gun', true)
             self:SetWeaponEnabledByLabel('NMissile', false)
         elseif enh == 'SelfRepairSystem' then
-            CCommandUnit.CreateEnhancement(self, enh)
+            SupportCommander.CreateEnhancement(self, enh)
             local bpRegenRate = self:GetBlueprint().Enhancements.SelfRepairSystem.NewRegenRate or 0
             if not Buffs['CybranSCURegenerateBonus'] then
                BuffBlueprint {
@@ -148,7 +148,7 @@ URL0301 = Class(CCommandUnit) {
             end
             Buff.ApplyBuff(self, 'CybranSCURegenerateBonus')
         elseif enh == 'SelfRepairSystemRemove' then
-            CCommandUnit.CreateEnhancement(self, enh)
+            SupportCommander.CreateEnhancement(self, enh)
             if Buff.HasBuff(self, 'CybranSCURegenerateBonus') then
                 Buff.RemoveBuff(self, 'CybranSCURegenerateBonus')
             end
@@ -212,7 +212,7 @@ URL0301 = Class(CCommandUnit) {
             self:AddBuff(bp)
         end
         -- Otherwise, we should finish killing the unit
-        CCommandUnit.OnKilled(self, instigator, type, overkillRatio)
+        SupportCommander.OnKilled(self, instigator, type, overkillRatio)
     end,
 
     IntelEffects = {
@@ -261,7 +261,7 @@ URL0301 = Class(CCommandUnit) {
     },
 
     OnIntelEnabled = function(self)
-        CCommandUnit.OnIntelEnabled(self)
+        SupportCommander.OnIntelEnabled(self)
         if self.CloakEnh and self:IsIntelEnabled('Cloak') then
             self:SetEnergyMaintenanceConsumptionOverride(self:GetBlueprint().Enhancements['CloakingGenerator'].MaintenanceConsumptionPerSecondEnergy or 0)
             self:SetMaintenanceConsumptionActive()
@@ -280,7 +280,7 @@ URL0301 = Class(CCommandUnit) {
     end,
 
     OnIntelDisabled = function(self)
-        CCommandUnit.OnIntelDisabled(self)
+        SupportCommander.OnIntelDisabled(self)
         if self.IntelEffectsBag then
             EffectUtil.CleanupEffectBag(self, 'IntelEffectsBag')
             self.IntelEffectsBag = nil
