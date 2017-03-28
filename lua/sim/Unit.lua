@@ -9,6 +9,7 @@
 local Entity = import('/lua/sim/Entity.lua').Entity
 local EffectTemplate = import('/lua/EffectTemplates.lua')
 local explosion = import('/lua/defaultexplosions.lua')
+local utilities = import('/lua/utilities.lua')
 
 local EffectUtilities = import('/lua/EffectUtilities.lua')
 local CleanupEffectBag = EffectUtilities.CleanupEffectBag
@@ -18,8 +19,6 @@ local GetConstructEconomyModel = import('/lua/game.lua').GetConstructEconomyMode
 local IsRestricted = import('/lua/game.lua').IsRestricted
 local VeteranDefault = import('/lua/game.lua').VeteranDefault
 
-
-local utilities = import('/lua/utilities.lua')
 local Shield = import('/lua/shield.lua').Shield
 local PersonalBubble = import('/lua/shield.lua').PersonalBubble
 local TransportShield = import('/lua/shield.lua').TransportShield
@@ -314,7 +313,6 @@ Unit = Class(moho.unit_methods) {
         self.Dead = false
 
         self:InitBuffFields()
-        self:OnCreated()
 
         -- Ensure transport slots are available
         self.attachmentBone = nil
