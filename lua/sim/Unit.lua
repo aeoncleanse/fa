@@ -285,8 +285,7 @@ Unit = Class(moho.unit_methods) {
             Affects = {},
         }
 
-        local bpVision = bp.Intel.VisionRadius
-        self:SetIntelRadius('Vision', bpVision or 0)
+        self:SetIntelRadius('Vision', bp.Intel.VisionRadius or 0)
 
         self:SetCanTakeDamage(true)
         self:SetCanBeKilled(true)
