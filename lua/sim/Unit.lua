@@ -4218,12 +4218,12 @@ Unit = Class(moho.unit_methods) {
     -- Buff Fields
     InitBuffFields = function(self)
         -- Creates all buff fields
-        local bp = GetBlueprint(self)
-        if self.BuffFields and bp.BuffFields then
+        local bpBuffFields = GetBlueprint(self).BuffFields
+        if self.BuffFields and bpBuffFields then
             for scriptName, field in self.BuffFields do
                 -- Getting buff field blueprint
 
-                local BuffFieldBp = BuffFieldBlueprints[bp.BuffFields[scriptName]]
+                local BuffFieldBp = BuffFieldBlueprints[bpBuffFields[scriptName]]
                 if not BuffFieldBp or type(BuffFieldBp) ~= 'table' then
                     WARN('BuffField: no blueprint data for buff field '..repr(scriptName))
                 else
