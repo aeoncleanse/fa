@@ -15,6 +15,7 @@ local CleanupEffectBag = EffectUtilities.CleanupEffectBag
 local CreateUnitDestructionDebris = EffectUtilities.CreateUnitDestructionDebris
 
 local GetConstructEconomyModel = import('/lua/game.lua').GetConstructEconomyModel
+local VeteranDefault = import('/lua/game.lua').VeteranDefault
 
 local Game = import('/lua/game.lua')
 local utilities = import('/lua/utilities.lua')
