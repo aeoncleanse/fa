@@ -459,7 +459,7 @@ function SpawnBuildBots(builder, unitBeingBuilt, BuildEffectsBag)
 
                 -- Make build bots unkillable
                 bot.CanTakeDamage = false
-                bot:SetCanBeKilled(false)
+                bot.CanBeKilled = false
                 bot.spawnedBy = builder
 
                 tableInsert(builder.buildBots, bot)

@@ -12,6 +12,7 @@ local minimumLabelMass = 10
 
 -- Deprecated function warning flags
 local SetCanTakeDamageWarning = false
+local SetCanBeKilledWarning = false
 
 Prop = Class(moho.prop_methods, Entity) {
     -- Do not call the base class __init and __post_init, we already have a c++ object
@@ -56,7 +57,7 @@ Prop = Class(moho.prop_methods, Entity) {
         self:SetMaxHealth(max)
         self:SetHealth(self, max)
         self.CanTakeDamage = not EntityCategoryContains(categories.INVULNERABLE, self)
-        self:SetCanBeKilled(true)
+        self.CanBeKilled = true
     end,
 
     AddPropCallback = function(self, fn, type)
@@ -90,12 +91,6 @@ Prop = Class(moho.prop_methods, Entity) {
     -- Returns the cache position of the prop, since it doesn't move, it's a big optimization
     GetCachePosition = function(self)
         return self.CachePosition or self:GetPosition()
-    end,
-
-    -- Sets if the unit can be killed.  val = true means it can be killed.
-    -- val = false means it can't be killed
-    SetCanBeKilled = function(self, val)
-        self.CanBeKilled = val
     end,
 
     CheckCanBeKilled = function(self, other)
@@ -322,6 +317,7 @@ Prop = Class(moho.prop_methods, Entity) {
         end
     end,
 
+    --- Deprecated Functions
     SetCanTakeDamage = function(self, val)
         if not SetCanTakeDamageWarning then
             WARN("Deprecated function SetCanTakeDamage called at")
@@ -331,5 +327,18 @@ Prop = Class(moho.prop_methods, Entity) {
         end
 
         self.CanTakeDamage = val
+    end,
+
+    -- Sets if the unit can be killed.  val = true means it can be killed.
+    -- val = false means it can't be killed
+    SetCanBeKilled = function(self, val)
+        if not SetCanBeKilledWarning then
+            WARN("Deprecated function SetCanBeKilled called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            SetCanBeKilledWarning = true
+        end
+
+        self.CanBeKilled = val
     end,
 }

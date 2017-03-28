@@ -85,6 +85,7 @@ local GetBuildCostsWarning = false
 local OnCreatedWarning = false
 local CheckCanTakeDamageWarning = false
 local SetCanTakeDamageWarning = false
+local SetCanBeKilledWarning = false
 
 SyncMeta = {
     __index = function(t, key)
@@ -290,7 +291,7 @@ Unit = Class(moho.unit_methods) {
         self:SetIntelRadius('Vision', bp.Intel.VisionRadius or 0)
 
         self.CanTakeDamage = true
-        self:SetCanBeKilled(true)
+        self.CanBeKilled = true
 
         local bpDeathAnim = bp.Display.AnimationDeath
         if bpDeathAnim and tableGetn(bpDeathAnim) > 0 then
@@ -1327,11 +1328,6 @@ Unit = Class(moho.unit_methods) {
         ArmyBrains[GetArmy(self)]:AddUnitStat(self:GetUnitId(), "lost", 1)
     end,
 
-    -- Argument val is true or false. False = cannot be killed
-    SetCanBeKilled = function(self, val)
-        self.CanBeKilled = val
-    end,
-
     -- This section contains functions used by the new mass-based veterancy system
     ------------------------------------------------------------------------------
 
@@ -1888,7 +1884,7 @@ Unit = Class(moho.unit_methods) {
             for _, bot in self.buildBots do
                 if not bot:BeenDestroyed() then
                     bot.CanTakeDamage = true
-                    bot:SetCanBeKilled(true)
+                    bot.CanBeKilled = true
 
                     bot:Kill(nil, "Normal", 1)
                 end
@@ -4281,5 +4277,17 @@ Unit = Class(moho.unit_methods) {
         end
 
         self.CanTakeDamage = val
+    end,
+
+    -- Argument val is true or false. False = cannot be killed
+    SetCanBeKilled = function(self, val)
+        if not SetCanBeKilledWarning then
+            WARN("Deprecated function SetCanBeKilled called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            SetCanBeKilledWarning = true
+        end
+
+        self.CanBeKilled = val
     end,
 }
