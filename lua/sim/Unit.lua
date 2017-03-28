@@ -13,6 +13,7 @@ local utilities = import('/lua/utilities.lua')
 local ApplyBuff = import('/lua/sim/buff.lua').ApplyBuff
 local ApplyCheatBuffs = import('/lua/ai/aiutilities.lua').ApplyCheatBuffs
 local BuffFieldBlueprints = import('/lua/sim/BuffField.lua').BuffFieldBlueprints
+local wreckageCreateWreckage = import('/lua/wreckage.lua').CreateWreckage
 
 local EffectUtilities = import('/lua/EffectUtilities.lua')
 local CleanupEffectBag = EffectUtilities.CleanupEffectBag
@@ -28,7 +29,6 @@ local TransportShield = import('/lua/shield.lua').TransportShield
 local PersonalShield = import('/lua/shield.lua').PersonalShield
 local AntiArtilleryShield = import('/lua/shield.lua').AntiArtilleryShield
 
-local Wreckage = import('/lua/wreckage.lua')
 local Set = import('/lua/system/setutils.lua')
 
 -- Localised global functions for speed. ~10% for single references, ~30% for double (eg table.insert)
@@ -1691,7 +1691,7 @@ Unit = Class(moho.unit_methods) {
         -- Now we adjust the global multiplier. This is used for balance purposes to adjust global reclaim rate.
         local time  = time * 2
 
-        local prop = Wreckage.CreateWreckage(bp, pos, self:GetOrientation(), mass, energy, time)
+        local prop = wreckageCreateWreckage(bp, pos, self:GetOrientation(), mass, energy, time)
 
         -- Attempt to copy our animation pose to the prop. Only works if
         -- the mesh and skeletons are the same, but will not produce an error if not.
