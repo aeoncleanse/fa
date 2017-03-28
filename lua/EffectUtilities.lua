@@ -420,7 +420,6 @@ function SpawnBuildBots(builder, unitBeingBuilt, BuildEffectsBag)
     -- Buildbots are scaled: ~ 1 pr 15 units of BP
     -- clamped to a max of 10 to avoid insane FPS drop
     -- with mods that modify BP
-    local numBots = math.min(math.ceil((10 + builder:GetBuildRate()) / 15), 10)
 
     if not builder.buildBots then
         builder.buildBots = {}
@@ -437,6 +436,7 @@ function SpawnBuildBots(builder, unitBeingBuilt, BuildEffectsBag)
             end
         end
 
+        local numBots = math.min(math.ceil((10 + builder:GetBuildRate()) / 15), 10)
         local numUnits = numBots - tableGetSize(builder.buildBots)
         if numUnits > 0 then
             local x, y, z = unpack(builder:GetPosition())
