@@ -1270,6 +1270,7 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- DO NOT REMOVE THIS FUNCTION. Though it looks useless, and is rarely if ever called from lua, removal causes a nearly 25% increase in execution time!
     CheckCanBeKilled = function(self, other)
         return self.CanBeKilled
     end,
