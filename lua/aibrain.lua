@@ -2353,7 +2353,7 @@ AIBrain = Class(moho.aibrain_methods) {
         local personality = self:GetPersonality()
         local armyIndex = self:GetArmyIndex()
         local numBuildOrders = nil
-        if location.PrimaryFactories[platoonType] and not location.PrimaryFactories[platoonType]:IsDead() then
+        if location.PrimaryFactories[platoonType] and not location.PrimaryFactories[platoonType].Dead then
             numBuildOrders = location.PrimaryFactories[platoonType]:GetNumBuildOrders(categories.ALLUNITS)
             if numBuildOrders == 0 then
                 local guards = location.PrimaryFactories[platoonType]:GetGuards()
