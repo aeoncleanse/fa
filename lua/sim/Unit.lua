@@ -95,6 +95,7 @@ local SetCanBeKilledWarning = false
 local IsDeadWarning = false
 local SetDeadWarning = false
 local GetEconomyBuildRateWarning = false
+local GetMassBuildAdjModWarning = false
 
 SyncMeta = {
     __index = function(t, key)
@@ -995,10 +996,6 @@ Unit = Class(moho.unit_methods) {
 
     SetBuildTimeMultiplier = function(self, time_mult)
         self.BuildTimeMultiplier = time_mult
-    end,
-
-    GetMassBuildAdjMod = function(self)
-        return self.MassBuildAdjMod or 1
     end,
 
     GetEnergyBuildAdjMod = function(self)
@@ -4320,5 +4317,16 @@ Unit = Class(moho.unit_methods) {
         end
 
         return self:GetBuildRate()
+    end,
+
+    GetMassBuildAdjMod = function(self)
+        if not GetMassBuildAdjModWarning then
+            WARN("Deprecated function GetMassBuildAdjMod called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            GetMassBuildAdjModWarning = true
+        end
+
+        return self.MassBuildAdjMod or 1
     end,
 }
