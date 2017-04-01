@@ -98,6 +98,7 @@ local GetEconomyBuildRateWarning = false
 local GetMassBuildAdjModWarning = false
 local GetEnergyBuildAdjModWarning = false
 local SetEnergyMaintenanceConsumptionOverrideWarning = false
+local SetBuildRateOverrideWarning = false
 
 SyncMeta = {
     __index = function(t, key)
@@ -1113,10 +1114,6 @@ Unit = Class(moho.unit_methods) {
 
         SetProductionPerSecondEnergy(self, (bpEcon.ProductionPerSecondEnergy or 0) * (self.EnergyProdAdjMod or 1))
         SetProductionPerSecondMass(self, (bpEcon.ProductionPerSecondMass or 0) * (self.MassProdAdjMod or 1))
-    end,
-
-    SetBuildRateOverride = function(self, overRide)
-        self.BuildRateOverride = overRide
     end,
 
     GetBuildRateOverride = function(self)
@@ -4344,5 +4341,16 @@ Unit = Class(moho.unit_methods) {
         end
 
         self.EnergyMaintenanceConsumptionOverride = override or 0
+    end,
+
+    SetBuildRateOverride = function(self, overRide)
+        if not SetBuildRateOverrideWarning then
+            WARN("Deprecated function SetBuildRateOverride called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            SetBuildRateOverrideWarning = true
+        end
+
+        self.BuildRateOverride = overRide
     end,
 }
