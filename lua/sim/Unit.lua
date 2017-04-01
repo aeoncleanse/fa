@@ -344,9 +344,15 @@ Unit = Class(moho.unit_methods) {
         return GetPosition(self)
     end,
 
-    GetFootPrintSize = function(self)
-        local fp = GetBlueprint(self).Footprint
-        return mathMax(fp.SizeX, fp.SizeZ)
+    GetFootPrintSize = function(self)        
+        if self.FootprintSize then
+            return self.FootprintSize
+        else
+            local fp = GetBlueprint(self).Footprint
+            self.FootprintSize = mathMax(fp.SizeX, fp.SizeZ)
+
+            return self.FootprintSize
+        end
     end,
 
     -- Returns 4 numbers: skirt x0, skirt z0, skirt.x1, skirt.z1
