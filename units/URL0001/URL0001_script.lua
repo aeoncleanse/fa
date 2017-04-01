@@ -348,15 +348,16 @@ URL0001 = Class(ACUUnit, CCommandUnit) {
 
     OnIntelEnabled = function(self)
         ACUUnit.OnIntelEnabled(self)
+        local bpEnh = self:GetBlueprint().Enhancements
         if self.CloakEnh and self:IsIntelEnabled('Cloak') then
-            self.EnergyMaintenanceConsumptionOverride = self:GetBlueprint().Enhancements['CloakingGenerator'].MaintenanceConsumptionPerSecondEnergy or 0
+            self.EnergyMaintenanceConsumptionOverride = bpEnh['CloakingGenerator'].MaintenanceConsumptionPerSecondEnergy or 0
             self:SetMaintenanceConsumptionActive()
             if not self.IntelEffectsBag then
                 self.IntelEffectsBag = {}
                 self.CreateTerrainTypeEffects(self, self.IntelEffects.Cloak, 'FXIdle',  self:GetCurrentLayer(), nil, self.IntelEffectsBag)
             end
         elseif self.StealthEnh and self:IsIntelEnabled('RadarStealth') and self:IsIntelEnabled('SonarStealth') then
-            self.EnergyMaintenanceConsumptionOverride = self:GetBlueprint().Enhancements['StealthGenerator'].MaintenanceConsumptionPerSecondEnergy or 0
+            self.EnergyMaintenanceConsumptionOverride = bpEnh['StealthGenerator'].MaintenanceConsumptionPerSecondEnergy or 0
             self:SetMaintenanceConsumptionActive()
             if not self.IntelEffectsBag then
                 self.IntelEffectsBag = {}
