@@ -7,8 +7,7 @@
 local Buff = import('/lua/sim/Buff.lua')
 local Entity = import('/lua/sim/Entity.lua').Entity
 
-BuffFieldBlueprints = {
-}
+BuffFieldBlueprints = {}
 
 BuffField = Class(Entity) {
     -- Change these in an inheriting class if you want
@@ -174,7 +173,7 @@ BuffField = Class(Entity) {
             local bp = self:GetBlueprint()
 
             self.ThreadHandle = self.Owner:ForkThread(self.FieldThread, self)
-            Owner:SetEnergyMaintenanceConsumptionOverride(bp.MaintenanceConsumptionPerSecondEnergy or 0)
+            Owner.EnergyMaintenanceConsumptionOverride = bp.MaintenanceConsumptionPerSecondEnergy or 0
             Owner:SetMaintenanceConsumptionActive()
 
             self.Enabled = true

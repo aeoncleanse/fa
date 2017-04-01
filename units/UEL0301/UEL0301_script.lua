@@ -110,7 +110,7 @@ UEL0301 = Class(SupportCommander) {
             KillThread(self.RebuildThread)
         elseif enh == 'Shield' then
             self:AddToggleCap('RULEUTC_ShieldToggle')
-            self:SetEnergyMaintenanceConsumptionOverride(bp.MaintenanceConsumptionPerSecondEnergy or 0)
+            self.EnergyMaintenanceConsumptionOverride = bp.MaintenanceConsumptionPerSecondEnergy or 0
             self:SetMaintenanceConsumptionActive()
             self:CreateShield(bp)
         elseif enh == 'ShieldRemove' then
@@ -123,7 +123,7 @@ UEL0301 = Class(SupportCommander) {
             ForkThread(function()
                 WaitTicks(1)
                 self:CreateShield(bp)
-                self:SetEnergyMaintenanceConsumptionOverride(bp.MaintenanceConsumptionPerSecondEnergy or 0)
+                self.EnergyMaintenanceConsumptionOverride = bp.MaintenanceConsumptionPerSecondEnergy or 0
                 self:SetMaintenanceConsumptionActive()
             end)
         elseif enh == 'ShieldGeneratorFieldRemove' then
@@ -182,7 +182,7 @@ UEL0301 = Class(SupportCommander) {
                 self.IntelEffectsBag = {}
                 self.CreateTerrainTypeEffects(self, self.IntelEffects, 'FXIdle',  self:GetCurrentLayer(), nil, self.IntelEffectsBag)
             end
-            self:SetEnergyMaintenanceConsumptionOverride(self:GetBlueprint().Enhancements['RadarJammer'].MaintenanceConsumptionPerSecondEnergy or 0)
+            self.EnergyMaintenanceConsumptionOverride = self:GetBlueprint().Enhancements['RadarJammer'].MaintenanceConsumptionPerSecondEnergy or 0
             self:SetMaintenanceConsumptionActive()
         end
     end,
