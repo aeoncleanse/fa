@@ -65,7 +65,7 @@ StructureUnit = Class(Unit) {
     end,
 
     GetCachePosition = function(self)
-        return self.CachePosition or self:GetPosition()
+        return self.CachePosition or GetPosition(self)
     end,
 
     RotateTowardsEnemy = function(self)
@@ -1490,13 +1490,13 @@ MobileUnit = Class(Unit) {
         end
 
         if currentLayer == 'Sub' then
-            self:GetAIBrain():AssignThreatAtPosition(self:GetPosition(), threat, decay * 10, 'AntiSub')
+            self:GetAIBrain():AssignThreatAtPosition(GetPosition(self), threat, decay * 10, 'AntiSub')
         elseif currentLayer == 'Air' then
-            self:GetAIBrain():AssignThreatAtPosition(self:GetPosition(), threat, decay, 'AntiAir')
+            self:GetAIBrain():AssignThreatAtPosition(GetPosition(self), threat, decay, 'AntiAir')
         elseif currentLayer == 'Water' then
-            self:GetAIBrain():AssignThreatAtPosition(self:GetPosition(), threat, decay * 10, 'AntiSurface')
+            self:GetAIBrain():AssignThreatAtPosition(GetPosition(self), threat, decay * 10, 'AntiSurface')
         else
-            self:GetAIBrain():AssignThreatAtPosition(self:GetPosition(), threat, decay, 'AntiSurface')
+            self:GetAIBrain():AssignThreatAtPosition(GetPosition(self), threat, decay, 'AntiSurface')
         end
 
         -- This unit was in a transport
@@ -1712,7 +1712,7 @@ AirUnit = Class(MobileUnit) {
             WARN('defaultunits.lua OnImpact: did not find a deathWep on the plane! Is the weapon defined in the blueprint? ' .. self:GetUnitId())
         elseif self.DeathCrashDamage > 0 then -- It was completely absorbed by a shield!
             local deathWep = self.deathWep -- Use a local copy for speed and easy reading
-            DamageArea(self, self:GetPosition(), deathWep.DamageRadius, self.DeathCrashDamage, deathWep.DamageType, deathWep.DamageFriendly)
+            DamageArea(self, GetPosition(self), deathWep.DamageRadius, self.DeathCrashDamage, deathWep.DamageType, deathWep.DamageFriendly)
         end
 
         if with == 'Water' then
