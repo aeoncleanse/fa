@@ -94,6 +94,7 @@ local SetCanTakeDamageWarning = false
 local SetCanBeKilledWarning = false
 local IsDeadWarning = false
 local SetDeadWarning = false
+local GetEconomyBuildRateWarning = false
 
 SyncMeta = {
     __index = function(t, key)
@@ -1002,10 +1003,6 @@ Unit = Class(moho.unit_methods) {
 
     GetEnergyBuildAdjMod = function(self)
         return self.EnergyBuildAdjMod or 1
-    end,
-
-    GetEconomyBuildRate = function(self)
-        return self:GetBuildRate()
     end,
 
     GetBuildRate = function(self)
@@ -4312,5 +4309,16 @@ Unit = Class(moho.unit_methods) {
         end
 
         self.Dead = true
+    end,
+
+    GetEconomyBuildRate = function(self)
+        if not GetEconomyBuildRateWarning then
+            WARN("Deprecated function GetEconomyBuildRate called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            GetEconomyBuildRateWarning = true
+        end
+
+        return self:GetBuildRate()
     end,
 }
