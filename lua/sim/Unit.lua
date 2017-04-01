@@ -93,6 +93,7 @@ local CheckCanTakeDamageWarning = false
 local SetCanTakeDamageWarning = false
 local SetCanBeKilledWarning = false
 local IsDeadWarning = false
+local SetDeadWarning = false
 
 SyncMeta = {
     __index = function(t, key)
@@ -339,10 +340,6 @@ Unit = Class(moho.unit_methods) {
     -------------------------------------------------------------------------------------------
     ---- MISC FUNCTIONS
     -------------------------------------------------------------------------------------------
-    SetDead = function(self)
-        self.Dead = true
-    end,
-
     GetCachePosition = function(self)
         return GetPosition(self)
     end,
@@ -4300,6 +4297,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     -- Deprecated, but too common in the base game files to just remove
+    -- TODO: Remove all references to this function
     IsDead = function(self)
         if not IsDeadWarning then
             WARN("Deprecated function IsDead called at")
@@ -4309,5 +4307,16 @@ Unit = Class(moho.unit_methods) {
         end
 
         return self.Dead
+    end,
+
+    SetDead = function(self)
+        if not SetDeadWarning then
+            WARN("Deprecated function SetDead called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            SetDeadWarning = true
+        end
+
+        self.Dead = true
     end,
 }
