@@ -75,8 +75,34 @@ CAirUnit = Class(AirUnit) {}
 -- WALL STRUCTURES
 CConcreteStructureUnit = Class(ConcreteStructureUnit) {}
 
+-- Mixin class to add the ability to clean up build bots to Cybran builder units
+CybranBuilderUnit = Class() {
+    DestroyBuildBots = function(self)
+        if self.buildBots then
+            for _, bot in self.buildBots do
+                if not bot:BeenDestroyed() then
+                    bot.CanTakeDamage = true
+                    bot.CanBeKilled = true
+
+                    bot:Kill(nil, "Normal", 1)
+                end
+            end
+
+            self.buildBots = nil
+        end
+    end,
+
+    StopBuildBotEffects = function(self)
+        if self.buildBots then
+            for _, b in self.buildBots do
+                ChangeState(b, b.IdleState)
+            end
+        end
+    end,
+}
+
 -- CONSTRUCTION UNITS
-CConstructionUnit = Class(ConstructionUnit){
+CConstructionUnit = Class(ConstructionUnit, CybranBuilderUnit){
     OnStopBeingBuilt = function(self, builder, layer)
         ConstructionUnit.OnStopBeingBuilt(self, builder, layer)
         -- If created with F2 on land, then play the transform anim.
@@ -119,6 +145,16 @@ CConstructionUnit = Class(ConstructionUnit){
     CreateBuildEffects = function(self, unitBeingBuilt, order)
         local buildbots = EffectUtil.SpawnBuildBots(self, unitBeingBuilt, self.BuildEffectsBag)
         EffectUtil.CreateCybranBuildBeams(self, unitBeingBuilt, self:GetBlueprint().General.BuildBones.BuildEffectBones, self.BuildEffectsBag)
+    end,
+
+    DestroyAllBuildEffects = function(self)
+        ConstructionUnit.DestroyAllBuildEffects(self)
+        self:DestroyBuildBots()
+    end,
+
+    StopBuildingEffects = function(self, built)
+        ConstructionUnit.StopBuildingEffects(self, built)
+        self:StopBuildBotEffects()
     end,
 }
 
@@ -328,7 +364,7 @@ CConstructionEggUnit = Class(CStructureUnit) {
 
 -- TODO: This should be made more general and put in defaultunits.lua in case other factions get similar buildings
 -- CConstructionStructureUnit
-CConstructionStructureUnit = Class(CStructureUnit) {
+CConstructionStructureUnit = Class(CStructureUnit, CybranBuilderUnit) {
     OnCreate = function(self)
         -- Structure stuff
         CStructureUnit.OnCreate(self)
@@ -418,8 +454,14 @@ CConstructionStructureUnit = Class(CStructureUnit) {
         CStructureUnit.StartBuildingEffects(self, unitBeingBuilt, order)
     end,
 
+    DestroyAllBuildEffects = function(self)
+        CStructureUnit.DestroyAllBuildEffects(self)
+        self:DestroyBuildBots()
+    end,
+
     StopBuildingEffects = function(self, unitBeingBuilt)
         CStructureUnit.StopBuildingEffects(self, unitBeingBuilt)
+        self:StopBuildBotEffects()
     end,
 
     WaitForBuildAnimation = function(self, enable)
