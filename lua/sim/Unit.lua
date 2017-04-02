@@ -2597,14 +2597,18 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- This function is called with extreme frequency. Ensure it is as efficient as possible at all times
     ShouldWatchIntel = function(self)
-        if GetBlueprint(self).Intel.FreeIntel then
+        local bp = GetBlueprint(self)
+
+        if bp.Intel.FreeIntel then -- No need to watch economy for this unit's intel
             return false
         end
-        local bpVal = GetBlueprint(self).Economy.MaintenanceConsumptionPerSecondEnergy
+
         -- Check enhancements
+        local bpVal = bp.Economy.MaintenanceConsumptionPerSecondEnergy
         if not bpVal or bpVal <= 0 then
-            local enh = GetBlueprint(self).Enhancements
+            local enh = bp.Enhancements
             if enh then
                 for k, v in enh do
                     if self:HasEnhancement(k) and v.MaintenanceConsumptionPerSecondEnergy and v.MaintenanceConsumptionPerSecondEnergy > 0 then
@@ -2614,12 +2618,13 @@ Unit = Class(moho.unit_methods) {
                 end
             end
         end
+
         local watchPower = false
         if bpVal and bpVal > 0 then
             local intelTypeTbl = {'JamRadius', 'SpoofRadius'}
             local intelTypeBool = {'RadarStealth', 'SonarStealth', 'Cloak'}
-            local intelTypeNum = {'RadarRadius', 'SonarRadius', 'OmniRadius', 'RadarStealthFieldRadius', 'SonarStealthFieldRadius', 'CloakFieldRadius', }
-            local bpInt = GetBlueprint(self).Intel
+            local intelTypeNum = {'RadarRadius', 'SonarRadius', 'OmniRadius', 'RadarStealthFieldRadius', 'SonarStealthFieldRadius', 'CloakFieldRadius'}
+            local bpInt = bp.Intel
             if bpInt then
                 for _, v in intelTypeTbl do
                     for ki, vi in bpInt[v] do
