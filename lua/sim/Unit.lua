@@ -100,6 +100,7 @@ local GetEnergyBuildAdjModWarning = false
 local SetEnergyMaintenanceConsumptionOverrideWarning = false
 local SetBuildRateOverrideWarning = false
 local GetBuildRateOverrideWarning = false
+local CheckCanBeKilledWarning = false
 
 SyncMeta = {
     __index = function(t, key)
@@ -1234,11 +1235,6 @@ Unit = Class(moho.unit_methods) {
                 ve:Destroy()
             end
         end
-    end,
-
-    -- DO NOT REMOVE THIS FUNCTION. Though it looks useless, and is rarely if ever called from lua, removal causes a nearly 25% increase in execution time!
-    CheckCanBeKilled = function(self, other)
-        return self.CanBeKilled
     end,
 
     -- On killed: this function plays when the unit takes a mortal hit. Plays death effects and spawns wreckage, dependant on overkill
@@ -4344,5 +4340,17 @@ Unit = Class(moho.unit_methods) {
         end
 
         return self.BuildRateOverride
+    end,
+
+    -- DO NOT REMOVE THIS FUNCTION. Though it looks useless, and is rarely if ever called from lua, removal causes a nearly 25% increase in execution time!
+    CheckCanBeKilled = function(self, other)
+        if not CheckCanBeKilledWarning then
+            WARN("Deprecated function CheckCanBeKilled called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            CheckCanBeKilledWarning = true
+        end
+
+        return self.CanBeKilled
     end,
 }
