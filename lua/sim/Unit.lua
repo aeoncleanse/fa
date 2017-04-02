@@ -93,7 +93,6 @@ local CheckCanTakeDamageWarning = false
 local SetCanTakeDamageWarning = false
 local SetCanBeKilledWarning = false
 local IsDeadWarning = false
-local SetDeadWarning = false
 local GetEconomyBuildRateWarning = false
 local GetMassBuildAdjModWarning = false
 local GetEnergyBuildAdjModWarning = false
@@ -4285,14 +4284,8 @@ Unit = Class(moho.unit_methods) {
         return self.Dead
     end,
 
+    -- This is called from the engine in the Kill() function.
     SetDead = function(self)
-        if not SetDeadWarning then
-            WARN("Deprecated function SetDead called at")
-            WARN(debug.traceback())
-            WARN("Further warnings of this will be suppressed")
-            SetDeadWarning = true
-        end
-
         self.Dead = true
     end,
 
