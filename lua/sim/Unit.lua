@@ -415,7 +415,6 @@ Unit = Class(moho.unit_methods) {
     updateBuildRestrictions = function(self)
         local faction = false
         local type = false
-        local techlevel = false
 
         -- Defines the unit's faction
         if EntityCategoryContains(categories.AEON, self) then
@@ -435,15 +434,6 @@ Unit = Class(moho.unit_methods) {
             type = categories.AIR
         elseif EntityCategoryContains(categories.NAVAL, self) then
             type = categories.NAVAL
-        end
-
-        -- Defines the unit's tech level
-        if EntityCategoryContains(categories.TECH1, self) then
-            techlevel = categories.TECH1
-        elseif EntityCategoryContains(categories.TECH2, self) then
-            techlevel = categories.TECH2
-        elseif EntityCategoryContains(categories.TECH3, self) then
-            techlevel = categories.TECH3
         end
 
         local aiBrain = self:GetAIBrain()
