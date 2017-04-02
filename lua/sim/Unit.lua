@@ -351,7 +351,7 @@ Unit = Class(moho.unit_methods) {
         return GetPosition(self)
     end,
 
-    GetFootPrintSize = function(self)        
+    GetFootPrintSize = function(self)
         if self.FootprintSize then
             return self.FootprintSize
         else
