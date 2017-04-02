@@ -2326,10 +2326,11 @@ Unit = Class(moho.unit_methods) {
     OnStartBuild = function(self, built, order)
         -- Prevent UI mods from violating game/scenario restrictions
         local id = built:GetUnitId()
-        local bp = GetBlueprint(built)
+        local bpBuilt = GetBlueprint(built)
         local index = GetArmy(self)
+
         if not ScenarioInfo.CampaignMode and IsRestricted(id, index) then
-            WARN('Unit.OnStartBuild() Army ' ..index.. ' cannot build restricted unit: ' .. (bp.Description or id))
+            WARN('Unit.OnStartBuild() Army ' ..index.. ' cannot build restricted unit: ' .. (bpBuilt.Description or id))
             self:OnFailedToBuild() -- Don't use: self:OnStopBuild()
             IssueClearFactoryCommands({self})
             IssueClearCommands({self})
@@ -2356,8 +2357,8 @@ Unit = Class(moho.unit_methods) {
             self:CheckAssistersFocus()
         end
 
-        local bp = GetBlueprint(self)
-        if order ~= 'Upgrade' or bp.Display.ShowBuildEffectsDuringUpgrade then
+        local bpSelf = GetBlueprint(self)
+        if order ~= 'Upgrade' or bpSelf.Display.ShowBuildEffectsDuringUpgrade then
             self:StartBuildingEffects(built, order)
         end
 
@@ -2367,8 +2368,7 @@ Unit = Class(moho.unit_methods) {
 
         self:DoOnStartBuildCallbacks(built)
 
-        local bp = GetBlueprint(built)
-        if order == 'Upgrade' and bp.General.UpgradesFrom == self:GetUnitId() then
+        if order == 'Upgrade' and bpBuilt.General.UpgradesFrom == self:GetUnitId() then
             built.DisallowCollisions = true
             built.CanTakeDamage = false
             built:SetCollisionShape('None')
