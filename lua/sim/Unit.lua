@@ -3959,6 +3959,12 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    OnShieldEnabled = function(self)
+    end,
+
+    OnShieldDisabled = function(self)
+    end,
+
     -------------------------------------------------------------------------------------------
     -- TRANSPORTING
     -------------------------------------------------------------------------------------------
@@ -4331,7 +4337,4 @@ Unit = Class(moho.unit_methods) {
 
         return self.UnitBeingBuilt
     end,
-
-    OnShieldEnabled = function(self) end,
-    OnShieldDisabled = function(self) end,
 }
