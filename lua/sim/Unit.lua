@@ -2134,12 +2134,12 @@ Unit = Class(moho.unit_methods) {
             self.MovementEffectsExist = false
         end
 
-        ArmyBrains[GetArmy(self)]:AddUnitStat(self:GetUnitId(), "built", 1)
+        local id = self:GetUnitId()
+        local index = GetArmy(self)
+
+        ArmyBrains[index]:AddUnitStat(id, "built", 1)
 
         -- Prevent UI mods from violating game/scenario restrictions
-        local id = self:GetUnitId()
-        local bp = GetBlueprint(self)
-        local index = GetArmy(self)
         if not ScenarioInfo.CampaignMode and IsRestricted(id, index) then
             WARN('Unit.OnStopBeingBuilt() Army ' ..index.. ' cannot create restricted unit: ' .. (bp.Description or id))
             if self ~= nil then self:Destroy() end
