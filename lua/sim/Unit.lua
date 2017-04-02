@@ -69,6 +69,7 @@ local SetConsumptionPerSecondMass = moho.unit_methods.SetConsumptionPerSecondMas
 local SetProductionPerSecondEnergy = moho.unit_methods.SetProductionPerSecondEnergy
 local SetProductionPerSecondMass = moho.unit_methods.SetProductionPerSecondMass
 local GetCurrentLayer = moho.unit_methods.GetCurrentLayer
+local MohoGetBuildRate = moho.unit_methods.GetBuildRate
 
 -- Misc methods
 local ChangeState = ChangeState
@@ -992,7 +993,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     GetBuildRate = function(self)
-        return mathMax(moho.unit_methods.GetBuildRate(self), 0.00001) -- Make sure we're never returning 0, this value will be used to divide with
+        return mathMax(MohoGetBuildRate(self), 0.00001) -- Make sure we're never returning 0, this value will be used to divide with
     end,
 
     UpdateAssistersConsumption = function(self)
