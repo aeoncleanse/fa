@@ -3494,7 +3494,7 @@ Unit = Class(moho.unit_methods) {
         local bp = GetBlueprint(self)
         if not bp.Audio[sound] then return end
 
-        local entity = self:GetSoundEntity('UnitSound')
+        local entity = self.Sounds['UnitSound'] or self:GetSoundEntity('UnitSound')
         PlaySound(entity, bp.Audio[sound])
 
         return true
