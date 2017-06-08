@@ -3093,12 +3093,13 @@ Unit = Class(moho.unit_methods) {
         end
 
         local layer = GetCurrentLayer(self)
-        local bpMTable = GetBlueprint(self).Display.MovementEffects
+        local bp = GetBlueprint(self).Display.MovementEffects
         if new == 'TopSpeed' and self.HasFuel then
-            if bpMTable[layer].Contrails and self.ContrailEffects then
-                self:CreateContrails(bpMTable[layer].Contrails)
+            local layer = bp[layer]
+            if layer.Contrails and self.ContrailEffects then
+                self:CreateContrails(layer.Contrails)
             end
-            if bpMTable[layer].TopSpeedFX then
+            if layer.TopSpeedFX then
                 self:CreateMovementEffects(self.TopSpeedEffectsBag, 'TopSpeed')
             end
         end
@@ -3107,7 +3108,7 @@ Unit = Class(moho.unit_methods) {
             self:DestroyIdleEffects()
             self:DestroyMovementEffects()
             self:CreateMovementEffects(self.MovementEffectsBag, nil)
-            if bpMTable.BeamExhaust then
+            if bp.BeamExhaust then
                 self:UpdateBeamExhaust('Cruise')
             end
             if self.Detector then
@@ -3119,7 +3120,7 @@ Unit = Class(moho.unit_methods) {
             self:DestroyMovementEffects()
             self:DestroyIdleEffects()
             self:CreateIdleEffects()
-            if bpMTable.BeamExhaust then
+            if bp.BeamExhaust then
                 self:UpdateBeamExhaust('Idle')
             end
             if self.Detector then
