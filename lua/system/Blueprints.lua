@@ -592,6 +592,58 @@ function PostModBlueprints(all_bps)
         BlueprintLoaderUpdateProgress()
     end
     HandleUnitWithBuildPresets(preset_bps, all_bps)
+
+    local function WatchIntel(bp)
+        if bp.Intel.FreeIntel then
+            bp.WatchPowerForIntel = false
+        else
+            local drain = bp.Economy.MaintenanceConsumptionPerSecondEnergy
+            
+            -- Examine our enhancements. If one could give us a drain, we'll need to check and update that on the fly
+            if (not drain or drain <= 0) and bp.Enhancements then
+                for _, v in bp.Enhancements do
+                    if v.MaintenanceConsumptionPerSecondEnergy and v.MaintenanceConsumptionPerSecondEnergy > 0 then
+                        bp.EnhancementAddsEnergyDrain = true
+                        return
+                    end
+                end
+            end
+
+            local bpInt = bp.Intel
+            if drain and drain > 0 and bpInt then
+                local intelTypeTbl = {'JamRadius', 'SpoofRadius'}
+                local intelTypeBool = {'RadarStealth', 'SonarStealth', 'Cloak'}
+                local intelTypeNum = {'RadarRadius', 'SonarRadius', 'OmniRadius', 'RadarStealthFieldRadius', 'SonarStealthFieldRadius', 'CloakFieldRadius'}
+                for _, v in intelTypeTbl do
+                    if bpInt[v] then
+                        for ki, vi in bpInt[v] do
+                            if vi > 0 then
+                                bp.WatchPowerForIntel = true
+                                return
+                            end
+                        end
+                    end
+                end
+                for _, v in intelTypeBool do
+                    if bpInt[v] then
+                        bp.WatchPowerForIntel = true
+                        return
+                    end
+                end
+                for _, v in intelTypeNum do
+                    if bpInt[v] > 0 then
+                        bp.WatchPowerForIntel = true
+                        return
+                    end
+                end
+            end
+        end
+    end
+
+    -- Assign a blueprint flag to say if we will need to watch our intel
+    for _, bp in all_bps.Unit do
+        WatchIntel(bp)
+    end
 end
 -----------------------------------------------------------------------------------------------
 --- Loads all blueprints with optional parameters

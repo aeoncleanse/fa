@@ -2522,7 +2522,8 @@ Unit = Class(moho.unit_methods) {
             end
         end
 
-        if not self.IntelThread then
+        local bp = GetBlueprint(self)
+        if not self.IntelThread and (bp.WatchPowerForIntel or bp.EnhancementAddsEnergyDrain) then
             self.IntelThread = self:ForkThread(self.IntelWatchThread)
         end
 
@@ -2597,66 +2598,56 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
-    -- This function is called with extreme frequency. Ensure it is as efficient as possible at all times
+    -- This function is called only by units which can upgrade into requiring energy maintenance
     ShouldWatchIntel = function(self)
         local bp = GetBlueprint(self)
+        local drain = false
 
-        if bp.Intel.FreeIntel then -- No need to watch economy for this unit's intel
-            return false
-        end
-
-        -- Check enhancements
-        local bpVal = bp.Economy.MaintenanceConsumptionPerSecondEnergy
-        if not bpVal or bpVal <= 0 then
-            local enh = bp.Enhancements
-            if enh then
-                for k, v in enh do
-                    if self:HasEnhancement(k) and v.MaintenanceConsumptionPerSecondEnergy and v.MaintenanceConsumptionPerSecondEnergy > 0 then
-                        bpVal = v.MaintenanceConsumptionPerSecondEnergy
-                        break
-                    end
-                end
+        for k, v in bp.Enhancements do
+            if self:HasEnhancement(k) and v.MaintenanceConsumptionPerSecondEnergy and v.MaintenanceConsumptionPerSecondEnergy > 0 then
+                drain = true
+                break
             end
         end
 
-        local watchPower = false
-        if bpVal and bpVal > 0 then
+        if drain then
             local intelTypeTbl = {'JamRadius', 'SpoofRadius'}
             local intelTypeBool = {'RadarStealth', 'SonarStealth', 'Cloak'}
             local intelTypeNum = {'RadarRadius', 'SonarRadius', 'OmniRadius', 'RadarStealthFieldRadius', 'SonarStealthFieldRadius', 'CloakFieldRadius'}
             local bpInt = bp.Intel
             if bpInt then
                 for _, v in intelTypeTbl do
-                    for ki, vi in bpInt[v] do
-                        if vi > 0 then
-                            watchPower = true
-                            break
+                    if bpInt[v] then
+                        for ki, vi in bpInt[v] do
+                            if vi > 0 then
+                                return true
+                            end
                         end
                     end
-                    if watchPower then break end
                 end
                 for _, v in intelTypeBool do
                     if bpInt[v] then
-                        watchPower = true
-                        break
+                        return true
                     end
                 end
                 for _, v in intelTypeNum do
                     if bpInt[v] > 0 then
-                        watchPower = true
-                        break
+                        return true
                     end
                 end
             end
         end
-        return watchPower
     end,
 
+    -- This thread is only activated if the unit is known to have to watch its intel, or if it is capable of upgrading such that it has to
     IntelWatchThread = function(self)
         local aiBrain = self:GetAIBrain()
         local bp = GetBlueprint(self)
         local recharge = bp.Intel.ReactivateTime or 10
-        while self:ShouldWatchIntel() do
+        local watchIntel = bp.WatchPowerForIntel
+
+        -- This will be permanent for units that don't upgrade into their drains
+        while watchIntel or (bp.EnhancementAddsEnergyDrain and self:ShouldWatchIntel()) do
             WaitSeconds(0.5)
 
             -- Checking for less than 1 because sometimes there's more
