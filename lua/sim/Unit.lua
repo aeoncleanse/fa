@@ -3514,7 +3514,7 @@ Unit = Class(moho.unit_methods) {
         if not bp.Audio[sound] then return end
 
         local type = 'Ambient' .. sound
-        local entity = self:GetSoundEntity(type)
+        local entity = self.Sounds[type] or self:GetSoundEntity(type)
         if entity and not entity:BeenDestroyed() then
             self.Sounds[type] = nil
             entity:SetAmbientSound(nil, nil)
