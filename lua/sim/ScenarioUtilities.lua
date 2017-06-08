@@ -8,6 +8,9 @@
 ----[  Copyright © 2005 Gas Powered Games, Inc.  All rights reserved.             ]--
 local Entity = import('/lua/sim/Entity.lua').Entity
 
+function QuitCheck()
+end
+
 function EnableLoadBalance(enabled, unitThreshold) --distributeTime)
     if not ScenarioInfo.LoadBalance then
         ScenarioInfo.LoadBalance =
