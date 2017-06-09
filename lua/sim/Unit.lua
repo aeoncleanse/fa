@@ -2877,9 +2877,9 @@ Unit = Class(moho.unit_methods) {
             self:PlayUnitAmbientSound('AmbientMoveSub')
         end
 
-        local bpTable = GetBlueprint(self).Display.MovementEffects
-        if not self.Footfalls and bpTable[new].Footfall then
-            self.Footfalls = self:CreateFootFallManipulators(bpTable[new].Footfall)
+        local footfall = GetBlueprint(self).Display.MovementEffects[new].Footfall
+        if not self.Footfalls and footfall then
+            self.Footfalls = self:CreateFootFallManipulators(footfall)
         end
         self:CreateLayerChangeEffects(new, old)
 
