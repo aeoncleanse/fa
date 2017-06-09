@@ -4056,13 +4056,15 @@ Unit = Class(moho.unit_methods) {
 
     EndRockingThread = function(self)
         local bp = GetBlueprint(self).Display
-        if self.RockManip then
-            self.RockManip:SetGoal(0)
-            self.RockManip:SetSpeed((bp.MaxRockSpeed or 1.5) / 4)
-            WaitFor(self.RockManip)
+        local manip = self.RockManip
 
-            if self.RockManip then
-                self.RockManip:Destroy()
+        if manip then
+            manip:SetGoal(0)
+            manip:SetSpeed((bp.MaxRockSpeed or 1.5) / 4)
+            WaitFor(manip)
+
+            if manip then
+                manip:Destroy()
                 self.RockManip = nil
             end
         end
