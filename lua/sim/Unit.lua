@@ -3618,8 +3618,11 @@ Unit = Class(moho.unit_methods) {
     DoOnDamagedCallbacks = function(self, instigator)
         if self.EventCallbacks.OnDamaged then
             for num, callback in self.EventCallbacks.OnDamaged do
-                if (callback.Called < callback.Repeat or callback.Repeat == -1) and (callback.Amount == -1 or (1 - self:GetHealthPercent() > callback.Amount)) then
-                    callback.Called = callback.Called + 1
+                local called = callback.Called
+                local Repeat = callback.Repeat
+                local amount = callback.Amount
+                if (called < Repeat or Repeat == -1) and (amount == -1 or (1 - self:GetHealthPercent() > amount)) then
+                    called = called + 1
                     callback.Func(self, instigator)
                 end
             end
