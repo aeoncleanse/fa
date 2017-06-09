@@ -3249,13 +3249,12 @@ Unit = Class(moho.unit_methods) {
         CleanupEffectBag(self, 'MovementEffectsBag')
 
         -- Clean up any camera shake going on.
-        local bpTable = GetBlueprint(self).Display.MovementEffects
-        local layer = GetCurrentLayer(self)
+        local layer = GetBlueprint(self).Display.MovementEffects[GetCurrentLayer(self)]
 
         if self.CamShakeT1 then
             KillThread(self.CamShakeT1)
 
-            local shake = bpTable[layer].CameraShake
+            local shake = layer.CameraShake
             if shake and shake.Radius and shake.MaxShakeEpicenter and shake.MinShakeAtRadius then
                 self:ShakeCamera(shake.Radius, shake.MaxShakeEpicenter * 0.25, shake.MinShakeAtRadius * 0.25, 1)
             end
@@ -3263,13 +3262,13 @@ Unit = Class(moho.unit_methods) {
 
         -- Clean up treads
         if self.TreadThreads then
-            for k, v in self.TreadThreads do
+            for _, v in self.TreadThreads do
                 KillThread(v)
             end
             self.TreadThreads = {}
         end
 
-        if bpTable[layer].Treads.ScrollTreads then
+        if layer.Treads.ScrollTreads then
             self:RemoveScroller()
         end
     end,
