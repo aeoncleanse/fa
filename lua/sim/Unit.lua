@@ -3535,8 +3535,9 @@ Unit = Class(moho.unit_methods) {
     end,
 
     DoUnitCallbacks = function(self, type, param)
-        if self.EventCallbacks[type] then
-            for num, cb in self.EventCallbacks[type] do
+        local callbacks = self.EventCallbacks[type]
+        if callbacks then
+            for num, cb in callbacks do
                 cb(self, param)
             end
         end
