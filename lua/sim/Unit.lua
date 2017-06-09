@@ -3166,20 +3166,24 @@ Unit = Class(moho.unit_methods) {
         local emit
 
         for kBG, vTypeGroup in effectTypeGroups do
+            local groupType = vTypeGroup.Type
+            local bones = vTypeGroup.Bones
+            local offset = vTypeGroup.Offset
+
             if TerrainType then
-                effects = TerrainType[FxBlockType][FxBlockKey][vTypeGroup.Type] or {}
+                effects = TerrainType[FxBlockType][FxBlockKey][groupType] or {}
             else
-                effects = self.GetTerrainTypeEffects(FxBlockType, FxBlockKey, pos, vTypeGroup.Type, TypeSuffix)
+                effects = self.GetTerrainTypeEffects(FxBlockType, FxBlockKey, pos, groupType, TypeSuffix)
             end
 
-            if not vTypeGroup.Bones or (vTypeGroup.Bones and (tableGetn(vTypeGroup.Bones) == 0)) then
+            if not bones or (bones and tableGetn(bones) == 0) then
                 WARN('*WARNING: No effect bones defined for layer group ', repr(self:GetUnitId()), ', Add these to a table in Display.[EffectGroup].', GetCurrentLayer(self), '.Effects {Bones ={}} in unit blueprint.')
             else
-                for kb, vBone in vTypeGroup.Bones do
+                for kb, vBone in bones do
                     for ke, vEffect in effects do
                         emit = CreateAttachedEmitter(self, vBone, army, vEffect):ScaleEmitter(vTypeGroup.Scale or 1)
-                        if vTypeGroup.Offset then
-                            emit:OffsetEmitter(vTypeGroup.Offset[1] or 0, vTypeGroup.Offset[2] or 0, vTypeGroup.Offset[3] or 0)
+                        if offset then
+                            emit:OffsetEmitter(offset[1] or 0, offset[2] or 0, offset[3] or 0)
                         end
                         if EffectBag then
                             tableInsert(EffectBag, emit)
