@@ -3192,9 +3192,10 @@ Unit = Class(moho.unit_methods) {
 
     CreateIdleEffects = function(self)
         local layer = GetCurrentLayer(self)
-        local bpTable = GetBlueprint(self).Display.IdleEffects
-        if bpTable[layer] and bpTable[layer].Effects then
-            self:CreateTerrainTypeEffects(bpTable[layer].Effects, 'FXIdle',  layer, nil, self.IdleEffectsBag)
+        local bpLayer = GetBlueprint(self).Display.IdleEffects[layer]
+
+        if bpLayer and bpLayer.Effects then
+            self:CreateTerrainTypeEffects(bpLayer.Effects, 'FXIdle',  layer, nil, self.IdleEffectsBag)
         end
     end,
 
