@@ -2687,7 +2687,7 @@ Unit = Class(moho.unit_methods) {
 
     OnDetectedBy = function(self, index)
         if self.DetectedByHooks then
-            for k, v in self.DetectedByHooks do
+            for _, v in self.DetectedByHooks do
                 v(self, index)
             end
         end
