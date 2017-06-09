@@ -3320,7 +3320,7 @@ Unit = Class(moho.unit_methods) {
             return false
         end
         local army = GetArmy(self)
-        for kb, vb in effectBones do
+        for _, vb in effectBones do
             tableInsert(self.BeamExhaustEffectsBag, CreateBeamEmitterOnEntity(self, vb, army, beamBP))
         end
     end,
@@ -3338,7 +3338,7 @@ Unit = Class(moho.unit_methods) {
         local army = GetArmy(self)
         local ZOffset = tableData.ZOffset or 0.0
         for ke, ve in self.ContrailEffects do
-            for kb, vb in effectBones do
+            for _, vb in effectBones do
                 tableInsert(self.TopSpeedEffectsBag, CreateTrail(self, vb, army, ve):SetEmitterParam('POSITION_Z', ZOffset))
             end
         end
