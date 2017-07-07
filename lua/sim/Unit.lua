@@ -416,8 +416,8 @@ Unit = Class(moho.unit_methods) {
     -- Updates build restrictions of any unit passed, used for support factories
     updateBuildRestrictions = function(self)
         local bp = GetBlueprint(self)
-        local faction = bp.FactionCategory
-        local type = bp.LayerCategory
+        local faction = categories[bp.FactionCategory]
+        local type = categories[bp.LayerCategory]
         local aiBrain = self:GetAIBrain()
         local supportfactory = false
 
