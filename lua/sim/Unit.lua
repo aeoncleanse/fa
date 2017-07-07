@@ -1510,22 +1510,19 @@ Unit = Class(moho.unit_methods) {
 
         -- Check for specific non-collisions
         local bp = GetBlueprint(other)
-        if bp.DoNotCollideList then
-            for _, v in pairs(bp.DoNotCollideList) do
-                if EntityCategoryContains(ParseEntityCategory(v), self) then
-                    return false
-                end
+        for _, v in pairs(bp.DoNotCollideList) do
+            if EntityCategoryContains(ParseEntityCategory(v), self) then
+                return false
             end
         end
 
         bp = GetBlueprint(self)
-        if bp.DoNotCollideList then
-            for _, v in pairs(bp.DoNotCollideList) do
-                if EntityCategoryContains(ParseEntityCategory(v), other) then
-                    return false
-                end
+        for _, v in pairs(bp.DoNotCollideList) do
+            if EntityCategoryContains(ParseEntityCategory(v), other) then
+                return false
             end
         end
+
         return true
     end,
 
@@ -2166,21 +2163,22 @@ Unit = Class(moho.unit_methods) {
     StopBeingBuiltEffects = function(self, builder, layer)
         local bp = GetBlueprint(self).Display
         local useTerrainType = false
-        if bp then
-            if bp.TerrainMeshes then
-                local bpTM = bp.TerrainMeshes
-                local pos = GetPosition(self)
-                local terrainType = GetTerrainType(pos[1], pos[3])
 
-                if bpTM[terrainType.Style] then
-                    SetMesh(self, bpTM[terrainType.Style])
-                    useTerrainType = true
-                end
-            end
-            if not useTerrainType then
-                SetMesh(self, bp.MeshBlueprint, true)
+        if bp.TerrainMeshes then
+            local bpTM = bp.TerrainMeshes
+            local pos = GetPosition(self)
+            local terrainType = GetTerrainType(pos[1], pos[3])
+
+            if bpTM[terrainType.Style] then
+                SetMesh(self, bpTM[terrainType.Style])
+                useTerrainType = true
             end
         end
+
+        if not useTerrainType then
+            SetMesh(self, bp.MeshBlueprint, true)
+        end
+
         self.OnBeingBuiltEffectsBag:Destroy()
     end,
 
@@ -2773,27 +2771,21 @@ Unit = Class(moho.unit_methods) {
             return false
         end
 
-        if bp.ShowBones then
-            for _, v in bp.ShowBones do
-                if IsValidBone(self, v) then
-                    ShowBone(self, v, true)
-                end
+        for _, v in bp.ShowBones do
+            if IsValidBone(self, v) then
+                ShowBone(self, v, true)
             end
         end
 
-        if bp.HideBones then
-            for _, v in bp.HideBones do
-                if IsValidBone(self, v) then
-                    HideBone(self, v, true)
-                end
+        for _, v in bp.HideBones do
+            if IsValidBone(self, v) then
+                HideBone(self, v, true)
             end
         end
 
         AddUnitEnhancement(self, enh, bp.Slot or '')
-        if bp.RemoveEnhancements then
-            for _, v in bp.RemoveEnhancements do
-                RemoveUnitEnhancement(self, v)
-            end
+        for _, v in bp.RemoveEnhancements do
+            RemoveUnitEnhancement(self, v)
         end
 
         self:RequestRefreshUI()
@@ -2804,19 +2796,15 @@ Unit = Class(moho.unit_methods) {
         local effects = TrashBag()
         local scale = mathMin(4, mathMax(1, (bp.BuildCostEnergy / bp.BuildTime or 1) / 50))
 
-        if bp.UpgradeEffectBones then
-            for _, v in bp.UpgradeEffectBones do
-                if IsValidBone(self, v) then
-                    EffectUtilities.CreateEnhancementEffectAtBone(self, v, self.UpgradeEffectsBag)
-                end
+        for _, v in bp.UpgradeEffectBones do
+            if IsValidBone(self, v) then
+                EffectUtilities.CreateEnhancementEffectAtBone(self, v, self.UpgradeEffectsBag)
             end
         end
 
-        if bp.UpgradeUnitAmbientBones then
-            for _, v in bp.UpgradeUnitAmbientBones do
-                if IsValidBone(self, v) then
-                    EffectUtilities.CreateEnhancementUnitAmbient(self, v, self.UpgradeEffectsBag)
-                end
+        for _, v in bp.UpgradeUnitAmbientBones do
+            if IsValidBone(self, v) then
+                EffectUtilities.CreateEnhancementUnitAmbient(self, v, self.UpgradeEffectsBag)
             end
         end
 

@@ -598,7 +598,7 @@ function PostModBlueprints(all_bps)
             bp.WatchPowerForIntel = false
         else
             local drain = bp.Economy.MaintenanceConsumptionPerSecondEnergy
-            
+
             -- Examine our enhancements. If one could give us a drain, we'll need to check and update that on the fly
             if (not drain or drain <= 0) and bp.Enhancements then
                 for _, v in bp.Enhancements do
@@ -643,6 +643,36 @@ function PostModBlueprints(all_bps)
     -- Assign a blueprint flag to say if we will need to watch our intel
     for _, bp in all_bps.Unit do
         WatchIntel(bp)
+    end
+
+    -- This section checks for a number of bp entry types that have historically been nil, and adds them here as empty tables to save CPU time ingame
+    local keys = {
+        'DoNotCollideList',
+        'TerrainMeshes',
+        'ShowBones',
+        'HideBones',
+        'RemoveEnhancements',
+        'UpgradeEffectBones',
+        'UpgradeUnitAmbientBones',
+    }
+
+    for _, bp in all_bps.Unit do
+        for a, key in keys do
+            if not bp[key] then
+                bp[key] = {}
+            end
+        end
+    end
+
+    -- Loop over all non-unit bps to add DoNotCollideList to them too
+    for bpType, bps in all_bps do
+        if bpType ~= 'Unit'then
+            for _, bp in bps do
+                if not bp['DoNotCollideList'] then
+                    bp['DoNotCollideList'] = {}
+                end
+            end
+        end
     end
 end
 -----------------------------------------------------------------------------------------------
