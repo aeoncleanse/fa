@@ -1273,7 +1273,7 @@ Unit = Class(moho.unit_methods) {
         self:DisableUnitIntel('Killed')
         self:ForkThread(self.DeathThread, overkillRatio , instigator)
 
-        ArmyBrains[GetArmy(self)]:AddUnitStat(self:GetUnitId(), "lost", 1)
+        ArmyBrains[GetArmy(self)]:AddUnitStat(self.ID, "lost", 1)
     end,
 
     -- This section contains functions used by the new mass-based veterancy system
@@ -1337,7 +1337,7 @@ Unit = Class(moho.unit_methods) {
 
         self:CalculateVeterancyLevel(massKilled) -- Bails if we've not gone up
 
-        ArmyBrains[GetArmy(self)]:AddUnitStat(unitKilled:GetUnitId(), "kills", 1)
+        ArmyBrains[GetArmy(self)]:AddUnitStat(unitKilled:ID, "kills", 1)
     end,
 
     CalculateVeterancyLevel = function(self, massKilled)
@@ -1874,7 +1874,7 @@ Unit = Class(moho.unit_methods) {
             if IsValidBone(self, v) then
                 ShowBone(self, v, children)
             else
-                WARN('*WARNING: TRYING TO SHOW BONE ', repr(v), ' ON UNIT ', repr(self:GetUnitId()), ' BUT IT DOES NOT EXIST IN THE MODEL. PLEASE CHECK YOUR SCRIPT IN THE BUILD PROGRESS BONES.')
+                WARN('*WARNING: TRYING TO SHOW BONE ', repr(v), ' ON UNIT ', repr(self.ID), ' BUT IT DOES NOT EXIST IN THE MODEL. PLEASE CHECK YOUR SCRIPT IN THE BUILD PROGRESS BONES.')
             end
         end
     end,
@@ -2116,7 +2116,7 @@ Unit = Class(moho.unit_methods) {
             self.MovementEffectsExist = false
         end
 
-        local id = self:GetUnitId()
+        local id = self.ID
         local index = GetArmy(self)
 
         ArmyBrains[index]:AddUnitStat(id, "built", 1)
@@ -2230,11 +2230,10 @@ Unit = Class(moho.unit_methods) {
         local upos = GetPosition(unit)
         local props = GetReclaimablesInRect(Rect(upos[1], upos[3], upos[1], upos[3]))
         local wreckage = {}
-        local bpid = unit:GetUnitId()
 
         for _, p in props do
             local pos = p.CachePosition
-            if p.IsWreckage and p.AssociatedBP == bpid and upos[1] == pos[1] and upos[3] == pos[3] then
+            if p.IsWreckage and p.AssociatedBP == unit.ID and upos[1] == pos[1] and upos[3] == pos[3] then
                 local progress = p:GetFractionComplete() * 0.5
                 -- Set health according to how much is left of the wreck
                 unit:SetHealth(self, GetMaxHealth(unit) * progress)
@@ -2308,12 +2307,12 @@ Unit = Class(moho.unit_methods) {
 
     OnStartBuild = function(self, built, order)
         -- Prevent UI mods from violating game/scenario restrictions
-        local id = built:GetUnitId()
+        local BuildID = built.ID
         local bpBuilt = GetBlueprint(built)
         local index = GetArmy(self)
 
-        if not ScenarioInfo.CampaignMode and IsRestricted(id, index) then
-            WARN('Unit.OnStartBuild() Army ' ..index.. ' cannot build restricted unit: ' .. (bpBuilt.Description or id))
+        if not ScenarioInfo.CampaignMode and IsRestricted(BuildID, index) then
+            WARN('Unit.OnStartBuild() Army ' ..index.. ' cannot build restricted unit: ' .. (bpBuilt.Description or BuildID))
             self:OnFailedToBuild() -- Don't use: self:OnStopBuild()
             IssueClearFactoryCommands({self})
             IssueClearCommands({self})
@@ -2351,7 +2350,7 @@ Unit = Class(moho.unit_methods) {
 
         self:DoOnStartBuildCallbacks(built)
 
-        if order == 'Upgrade' and bpBuilt.General.UpgradesFrom == self:GetUnitId() then
+        if order == 'Upgrade' and bpBuilt.General.UpgradesFrom == self.ID then
             built.DisallowCollisions = true
             built.CanTakeDamage = false
             built:SetCollisionShape('None')
@@ -3149,7 +3148,7 @@ Unit = Class(moho.unit_methods) {
             end
 
             if not bones or (bones and tableGetn(bones) == 0) then
-                WARN('*WARNING: No effect bones defined for layer group ', repr(self:GetUnitId()), ', Add these to a table in Display.[EffectGroup].', GetCurrentLayer(self), '.Effects {Bones ={}} in unit blueprint.')
+                WARN('*WARNING: No effect bones defined for layer group ', repr(self.ID), ', Add these to a table in Display.[EffectGroup].', GetCurrentLayer(self), '.Effects {Bones ={}} in unit blueprint.')
             else
                 for kb, vBone in bones do
                     for ke, vEffect in effects do
@@ -3191,7 +3190,7 @@ Unit = Class(moho.unit_methods) {
 
             if not effectTypeGroups or (effectTypeGroups and (tableGetn(effectTypeGroups) == 0)) then
                 if not self.Footfalls and bpTable.Footfall then
-                    WARN('*WARNING: No movement effect groups defined for unit ', repr(self:GetUnitId()), ', Effect groups with bone lists must be defined to play movement effects. Add these to the Display.MovementEffects', layer, '.Effects table in unit blueprint. ')
+                    WARN('*WARNING: No movement effect groups defined for unit ', repr(self.ID), ', Effect groups with bone lists must be defined to play movement effects. Add these to the Display.MovementEffects', layer, '.Effects table in unit blueprint. ')
                 end
                 return false
             end
@@ -3288,7 +3287,7 @@ Unit = Class(moho.unit_methods) {
     CreateBeamExhaust = function(self, bpTable, beamBP)
         local effectBones = bpTable.Bones
         if not effectBones or (effectBones and tableGetn(effectBones) == 0) then
-            WARN('*WARNING: No beam exhaust effect bones defined for unit ', repr(self:GetUnitId()), ', Effect Bones must be defined to play beam exhaust effects. Add these to the Display.MovementEffects.BeamExhaust.Bones table in unit blueprint.')
+            WARN('*WARNING: No beam exhaust effect bones defined for unit ', repr(self.ID), ', Effect Bones must be defined to play beam exhaust effects. Add these to the Display.MovementEffects.BeamExhaust.Bones table in unit blueprint.')
             return false
         end
         local army = GetArmy(self)
@@ -3304,7 +3303,7 @@ Unit = Class(moho.unit_methods) {
     CreateContrails = function(self, tableData)
         local effectBones = tableData.Bones
         if not effectBones or (effectBones and tableGetn(effectBones) == 0) then
-            WARN('*WARNING: No contrail effect bones defined for unit ', repr(self:GetUnitId()), ', Effect Bones must be defined to play contrail effects. Add these to the Display.MovementEffects.Air.Contrail.Bones table in unit blueprint. ')
+            WARN('*WARNING: No contrail effect bones defined for unit ', repr(self.ID), ', Effect Bones must be defined to play contrail effects. Add these to the Display.MovementEffects.Air.Contrail.Bones table in unit blueprint. ')
             return false
         end
         local army = GetArmy(self)
@@ -3365,7 +3364,7 @@ Unit = Class(moho.unit_methods) {
 
     CreateFootFallManipulators = function(self, footfall)
         if not footfall.Bones or (footfall.Bones and (tableGetn(footfall.Bones) == 0)) then
-            WARN('*WARNING: No footfall bones defined for unit ', repr(self:GetUnitId()), ', ', 'these must be defined to animation collision detector and foot plant controller')
+            WARN('*WARNING: No footfall bones defined for unit ', repr(self.ID), ', ', 'these must be defined to animation collision detector and foot plant controller')
             return false
         end
 
@@ -3436,7 +3435,7 @@ Unit = Class(moho.unit_methods) {
         if IsValidBone(self, bone) then
             return true
         end
-        error('*ERROR: Trying to use the bone, ' .. bone .. ' on unit ' .. self:GetUnitId() .. ' and it does not exist in the model.', 2)
+        error('*ERROR: Trying to use the bone, ' .. bone .. ' on unit ' .. self.ID .. ' and it does not exist in the model.', 2)
 
         return false
     end,
