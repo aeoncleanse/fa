@@ -280,6 +280,7 @@ Unit = Class(moho.unit_methods) {
 
         self.debris_Vector = Vector(0, 0, 0)
 
+        self.ID = self:GetUnitId()
         local bp = GetBlueprint(self)
 
         -- Save common lookup info
