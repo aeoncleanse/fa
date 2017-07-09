@@ -71,6 +71,8 @@ local SetProductionPerSecondMass = moho.unit_methods.SetProductionPerSecondMass
 local GetCurrentLayer = moho.unit_methods.GetCurrentLayer
 local MohoGetBuildRate = moho.unit_methods.GetBuildRate
 
+local bps = __blueprints.Unit
+
 -- Misc methods
 local ChangeState = ChangeState
 local ForkThread = ForkThread
@@ -281,7 +283,7 @@ Unit = Class(moho.unit_methods) {
         self.debris_Vector = Vector(0, 0, 0)
 
         self.ID = self:GetUnitId()
-        local bp = GetBlueprint(self)
+        local bp = bps[self.ID]
 
         -- Save common lookup info
         self.techCategory = bp.TechCategory
@@ -416,7 +418,7 @@ Unit = Class(moho.unit_methods) {
 
     -- Updates build restrictions of any unit passed, used for support factories
     updateBuildRestrictions = function(self)
-        local bp = GetBlueprint(self)
+        local bp = bps[self.ID]
         local faction = categories[bp.FactionCategory]
         local type = categories[bp.LayerCategory]
         local aiBrain = self:GetAIBrain()
@@ -428,8 +430,9 @@ Unit = Class(moho.unit_methods) {
         end
 
         -- Add build restrictions
-        if bp.CategoriesHash.FACTORY then
-            if bp.CategoriesHash.SUPPORTFACTORY then
+        local catHash = bp.CategoriesHash
+        if catHash.FACTORY then
+            if catHash.SUPPORTFACTORY then
                 -- Add support factory cannot build higher tech units at all, until there is a HQ factory
                 self:AddBuildRestriction(categories.TECH2 * categories.MOBILE)
                 self:AddBuildRestriction(categories.TECH3 * categories.MOBILE)
@@ -440,7 +443,7 @@ Unit = Class(moho.unit_methods) {
                 self:AddBuildRestriction(categories.SUPPORTFACTORY)
                 supportfactory = false
             end
-        elseif bp.CategoriesHash.ENGINEER then
+        elseif catHash.ENGINEER then
             -- Engineers also cannot build a support factory until there is a HQ factory
             self:AddBuildRestriction(categories.SUPPORTFACTORY)
         end
@@ -483,7 +486,7 @@ Unit = Class(moho.unit_methods) {
                     if not unit.Dead and not unit:IsBeingBuilt() then
                         -- Special case for the Commander, since its engineering upgrades are implemented using build restrictions
                         -- In future, figure out a way to query existing legal builds? For example, check if you can build T2, if you can, enable support factory too
-                        if bp.CategoriesHash.COMMAND then
+                        if catHash.COMMAND then
                             if self:HasEnhancement('AdvancedEngineering') or self:HasEnhancement('T3Engineering') then
                                 self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * faction * researchType)
                             end
@@ -497,7 +500,7 @@ Unit = Class(moho.unit_methods) {
                     if not unit.Dead and not unit:IsBeingBuilt() then
 
                         -- Special case for the commander, since its engineering upgrades are implemented using build restrictions
-                        if bp.CategoriesHash.COMMAND then
+                        if catHash.COMMAND then
                             if self:HasEnhancement('AdvancedEngineering') then
                                 self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * faction * researchType)
                             elseif self:HasEnhancement('T3Engineering') then
@@ -867,8 +870,7 @@ Unit = Class(moho.unit_methods) {
             end
 
             -- Kill non-capturable things which are in a transport
-            local bp = GetBlueprint(self)
-            if bp.CategoriesHash.TRANSPORTATION then
+            if bps[self.ID].CategoriesHash.TRANSPORTATION then
                 local cargo = self:GetCargo()
                 for _, v in cargo do
                     if not v.Dead and not v:IsCapturable() then
@@ -1484,24 +1486,21 @@ Unit = Class(moho.unit_methods) {
             return false
         end
 
-        local bp = GetBlueprint(self)
-
-        if bp.CategoriesHash.PROJECTILE then
+        if EntityCategoryContains(categories.PROJECTILE, other) then
             if GetArmy(self) == GetArmy(other) then
                 return other.CollideFriendly
             end
         end
 
-        for _, v in pairs(bp.DoNotCollideList) do
-            if EntityCategoryContains(ParseEntityCategory(v), other) then
+        -- Check for specific non-collisions
+        for _, v in pairs(GetBlueprint(other).DoNotCollideList) do
+            if EntityCategoryContains(ParseEntityCategory(v), self) then
                 return false
             end
         end
 
-        -- Check for specific non-collisions
-        bp = GetBlueprint(other)
-        for _, v in pairs(bp.DoNotCollideList) do
-            if EntityCategoryContains(ParseEntityCategory(v), self) then
+        for _, v in pairs(bps[self.ID].DoNotCollideList) do
+            if EntityCategoryContains(ParseEntityCategory(v), other) then
                 return false
             end
         end
@@ -1556,7 +1555,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     PlayAnimationThread = function(self, anim, rate)
-        local bp = GetBlueprint(self)
+        local bp = bps[self.ID]
         local bpAnim = bp.Display[anim]
         if bpAnim then
             local animBlock = self:ChooseAnimBlock(bpAnim)
@@ -1723,16 +1722,15 @@ Unit = Class(moho.unit_methods) {
 
     ShallSink = function(self)
         local layer = GetCurrentLayer(self)
-        local bp = GetBlueprint(self)
         local shallSink = (
             (layer == 'Water' or layer == 'Sub') and  -- In a layer for which sinking is meaningful
-            not bp.CategoriesHash.STRUCTURE  -- Exclude structures
+            not bps[self.ID].CategoriesHash.STRUCTURE  -- Exclude structures
         )
         return shallSink
     end,
 
     DeathThread = function(self, overkillRatio, instigator)
-        local bp = GetBlueprint(self)
+        local bp = bps[self.ID]
         local isNaval = bp.CategoriesHash.NAVAL
         local shallSink = self:ShallSink()
 
@@ -2276,8 +2274,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     CheckAssistFocus = function(self)
-        local bp = GetBlueprint(self)
-        if not (self and bp.CategoriesHash.ENGINEER) or self.Dead then
+        if not (self and bps[self.ID].CategoriesHash.ENGINEER) or self.Dead then
             return
         end
 
@@ -4118,8 +4115,7 @@ Unit = Class(moho.unit_methods) {
             local category
 
             if not source then
-                local bp = self:GetBlueprint()
-                if bp.CategoriesHash.RESEARCH then
+                if bps[self.ID].CategoriesHash.RESEARCH then
                     unitType = string.lower('research' .. self.layerCategory .. self.techCategory)
                     category = 'tech'
                 elseif EntityCategoryContains(categories.NUKE * categories.STRUCTURE - categories.EXPERIMENTAL, self) then -- Ensure to exclude Yolona Oss, which gets its own message
@@ -4129,7 +4125,7 @@ Unit = Class(moho.unit_methods) {
                     unitType = 'arty'
                     category = 'other'
                 elseif self.techCategory == 'EXPERIMENTAL' then
-                    unitType = bp.BlueprintId
+                    unitType = self.ID
                     category = 'experimentals'
                 else
                     return
