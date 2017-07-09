@@ -71,7 +71,7 @@ local SetProductionPerSecondMass = moho.unit_methods.SetProductionPerSecondMass
 local GetCurrentLayer = moho.unit_methods.GetCurrentLayer
 local MohoGetBuildRate = moho.unit_methods.GetBuildRate
 
-local bps = __blueprints.Unit
+local bps = __blueprints
 
 -- Misc methods
 local ChangeState = ChangeState
