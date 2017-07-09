@@ -233,30 +233,6 @@ Unit = Class(moho.unit_methods) {
         -- Turn off land bones if this unit has them.
         self:HideLandBones()
 
-        -- Set number of effects per damage depending on its volume
-        local x, y, z = self:GetUnitSizes()
-        local vol = x * y * z
-
-        local damageamounts = 1
-        if vol >= 20 then
-            damageamounts = 6
-            self.FxDamageScale = 2
-        elseif vol >= 10 then
-            damageamounts = 4
-            self.FxDamageScale = 1.5
-        elseif vol >= 0.5 then
-            damageamounts = 2
-        end
-
-        self.FxDamage1Amount = self.FxDamage1Amount or damageamounts
-        self.FxDamage2Amount = self.FxDamage2Amount or damageamounts
-        self.FxDamage3Amount = self.FxDamage3Amount or damageamounts
-        self.DamageEffectsBag = {
-            {},
-            {},
-            {},
-        }
-
         -- Set up effect emitter bags
         self.MovementEffectsBag = {}
         self.IdleEffectsBag = {}
@@ -284,6 +260,30 @@ Unit = Class(moho.unit_methods) {
 
         self.ID = self:GetUnitId()
         local bp = bps[self.ID]
+
+        -- Set number of effects per damage depending on its volume
+        local x, y, z = self:GetUnitSizes()
+        local vol = x * y * z
+
+        local damageamounts = 1
+        if vol >= 20 then
+            damageamounts = 6
+            self.FxDamageScale = 2
+        elseif vol >= 10 then
+            damageamounts = 4
+            self.FxDamageScale = 1.5
+        elseif vol >= 0.5 then
+            damageamounts = 2
+        end
+
+        self.FxDamage1Amount = self.FxDamage1Amount or damageamounts
+        self.FxDamage2Amount = self.FxDamage2Amount or damageamounts
+        self.FxDamage3Amount = self.FxDamage3Amount or damageamounts
+        self.DamageEffectsBag = {
+            {},
+            {},
+            {},
+        }
 
         -- Save common lookup info
         self.techCategory = bp.TechCategory
