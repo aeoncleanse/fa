@@ -103,6 +103,7 @@ local SetEnergyMaintenanceConsumptionOverrideWarning = false
 local SetBuildRateOverrideWarning = false
 local GetBuildRateOverrideWarning = false
 local CheckCanBeKilledWarning = false
+local OnMotionTurnEventChangeWarning = false
 
 SyncMeta = {
     __index = function(t, key)
@@ -2980,10 +2981,6 @@ Unit = Class(moho.unit_methods) {
         self:CreateMotionChangeEffects(new, old)
     end,
 
-    -- Called as planes whoosh round corners. No sounds were shipped for use with this and it was a
-    -- cycle eater, so we killed it.
-    OnMotionTurnEventChange = function() end,
-
     OnTerrainTypeChange = function(self, new, old)
         if self.MovementEffectsExist then
             self:DestroyMovementEffects()
@@ -4311,5 +4308,16 @@ Unit = Class(moho.unit_methods) {
         end
 
         return self.CanBeKilled
+    end,
+
+    -- Called as planes whoosh round corners. No sounds were shipped for use with this and it was a
+    -- cycle eater, so we killed it. Three calls from Engine have been removed.
+    OnMotionTurnEventChange = function()
+        if not OnMotionTurnEventChangeWarning then
+            WARN("Deprecated function OnMotionTurnEventChange called at")
+            WARN(debug.traceback())
+            WARN("Further warnings of this will be suppressed")
+            OnMotionTurnEventChangeWarning = true
+        end
     end,
 }
