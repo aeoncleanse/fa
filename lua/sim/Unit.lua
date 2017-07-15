@@ -102,7 +102,6 @@ local GetEnergyBuildAdjModWarning = false
 local SetEnergyMaintenanceConsumptionOverrideWarning = false
 local SetBuildRateOverrideWarning = false
 local GetBuildRateOverrideWarning = false
-local CheckCanBeKilledWarning = false
 local OnMotionTurnEventChangeWarning = false
 
 SyncMeta = {
@@ -4298,15 +4297,8 @@ Unit = Class(moho.unit_methods) {
         return self.BuildRateOverride
     end,
 
-    -- DO NOT REMOVE THIS FUNCTION. Though it looks useless, and is rarely if ever called from lua, removal causes a nearly 25% increase in execution time!
+    -- DO NOT REMOVE THIS FUNCTION. Called from engine to fetch the CanBeKilled state. Try not to call it from LUA, just grab the flag directly.
     CheckCanBeKilled = function(self, other)
-        if not CheckCanBeKilledWarning then
-            WARN("Deprecated function CheckCanBeKilled called at")
-            WARN(debug.traceback())
-            WARN("Further warnings of this will be suppressed")
-            CheckCanBeKilledWarning = true
-        end
-
         return self.CanBeKilled
     end,
 
