@@ -61,13 +61,13 @@ function TransferUnitsOwnership(units, ToArmyIndex)
     if not toBrain or toBrain:IsDefeated() or not units or table.getn(units) < 1 then
         return
     end
-    local fromBrain = GetArmyBrain(units[1]:GetArmy())
+    local fromBrain = GetArmyBrain(units[1].Army)
 
     table.sort(units, function (a, b) return a:GetBlueprint().Economy.BuildCostMass > b:GetBlueprint().Economy.BuildCostMass end)
 
     local newUnits = {}
-    for k,v in units do
-        local owner = v:GetArmy()
+    for _, v in units do
+        local owner = v.Army
         -- Only allow units not attached to be given. This is because units will give all of it's children over
         -- aswell, so we only want the top level units to be given.
         -- Units currently being captured is also denied
@@ -188,7 +188,7 @@ end
 
 function GiveUnitsToPlayer(data, units)
     if units then
-        local owner = units[1]:GetArmy()
+        local owner = units[1].Army
         if OkayToMessWithArmy(owner) and IsAlly(owner,data.To) then
             TransferUnitsOwnership(units, data.To)
         end
