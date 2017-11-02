@@ -5,7 +5,10 @@
 -- Copyright © 2005 Gas Powered Games, Inc.  All rights reserved.
 -----------------------------------------------------------------
 
--- Imports. Localise commonly used subfunctions for speed
+----------
+-- Imports
+----------
+
 local Entity = import('/lua/sim/Entity.lua').Entity
 local EffectTemplate = import('/lua/EffectTemplates.lua')
 local explosion = import('/lua/defaultexplosions.lua')
@@ -30,7 +33,11 @@ local TransportShield = import('/lua/shield.lua').TransportShield
 local PersonalShield = import('/lua/shield.lua').PersonalShield
 local AntiArtilleryShield = import('/lua/shield.lua').AntiArtilleryShield
 
+------------------------------------------------------------------------------------------------------
 -- Localised global functions for speed. ~10% for single references, ~30% for double (eg table.insert)
+------------------------------------------------------------------------------------------------------
+
+-- Table methods
 local tableInsert = table.insert
 local tableRemove = table.remove
 local tableGetn = table.getn
@@ -38,6 +45,7 @@ local tableGetsize = table.getsize
 local tableEmpty = table.empty
 local tableDeepCopy = table.deepcopy
 
+-- Math methods
 local mathMax = math.max
 local mathMin = math.min
 local mathATan2 = math.atan2
@@ -88,7 +96,10 @@ local GetTerrainHeight = GetTerrainHeight
 local GetTerrainType = GetTerrainType
 local IsAlly = IsAlly
 
+------------------------------------
 -- Deprecated function warning flags
+------------------------------------
+
 local GetUnitBeingBuiltWarning = false
 local GetBuildCostsWarning = false
 local OnCreatedWarning = false
@@ -136,6 +147,7 @@ Unit = Class(moho.unit_methods) {
 
     FxScale = 1,
     FxDamageScale = 1,
+
     -- FX Damage tables. A random damage effect table of emitters is chosen out of this table
     FxDamage1 = {EffectTemplate.DamageSmoke01, EffectTemplate.DamageSparks01},
     FxDamage2 = {EffectTemplate.DamageFireSmoke01, EffectTemplate.DamageSparks01},
