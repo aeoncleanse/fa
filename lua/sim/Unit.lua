@@ -80,6 +80,7 @@ local SetProductionPerSecondEnergy = moho.unit_methods.SetProductionPerSecondEne
 local SetProductionPerSecondMass = moho.unit_methods.SetProductionPerSecondMass
 local GetCurrentLayer = moho.unit_methods.GetCurrentLayer
 local MohoGetBuildRate = moho.unit_methods.GetBuildRate
+local GetUnitId = moho.unit_methods.GetUnitId
 
 local bps = __blueprints
 
@@ -274,7 +275,7 @@ Unit = Class(moho.unit_methods) {
 
         self.debris_Vector = Vector(0, 0, 0)
 
-        self.ID = self:GetUnitId()
+        self.ID = GetUnitId(self)
         local bp = bps[self.ID]
 
         -- Set number of effects per damage depending on its volume
@@ -1412,7 +1413,7 @@ Unit = Class(moho.unit_methods) {
 
     CreateVeterancyBuffs = function(self, level)
         local healthBuffName = 'VeterancyMaxHealth' .. level -- Currently there is no difference between units, therefore no need for unique buffs
-        local regenBuffName = self:GetUnitId() .. 'VeterancyRegen' .. level -- Generate a buff based on the unitId - eg. uel0001VeterancyRegen3
+        local regenBuffName = self.ID .. 'VeterancyRegen' .. level -- Generate a buff based on the unitId - eg. uel0001VeterancyRegen3
 
         if not Buffs[regenBuffName] then
             -- Maps self.techCategory to a number so we can do math on it for naval units
