@@ -81,6 +81,7 @@ local SetProductionPerSecondMass = moho.unit_methods.SetProductionPerSecondMass
 local GetCurrentLayer = moho.unit_methods.GetCurrentLayer
 local MohoGetBuildRate = moho.unit_methods.GetBuildRate
 local GetUnitId = moho.unit_methods.GetUnitId
+local IsUnitState = moho.unit_methods.IsUnitState
 
 local bps = __blueprints
 
@@ -641,7 +642,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     OnUnpaused = function(self)
-        if self:IsUnitState('Building') or self:IsUnitState('Upgrading') or self:IsUnitState('Repairing') then
+        if IsUnitState(self, 'Building') or IsUnitState(self, 'Upgrading') or IsUnitState(self, 'Repairing') then
             self:SetActiveConsumptionActive()
             self:PlayUnitAmbientSound('ConstructLoop')
         end
@@ -823,7 +824,7 @@ Unit = Class(moho.unit_methods) {
         self:SetUnitState('Repairing', true)
 
         -- Force assist over repair when unit is assisting something
-        if unit:GetFocusUnit() and unit:IsUnitState('Building') then
+        if unit:GetFocusUnit() and IsUnitState(unit, 'Building') then
             self:ForkThread(function()
                 self:CheckAssistFocus()
             end)
@@ -1010,7 +1011,7 @@ Unit = Class(moho.unit_methods) {
 
         local workers = self.Brain:GetUnitsAroundPoint(categories.REPAIR, GetPosition(self), 50, 'Ally')
         for _, v in workers do
-            if not v.Dead and v:IsUnitState('Repairing') and v:GetFocusUnit() == self then
+            if not v.Dead and IsUnitState(v, 'Repairing') and v:GetFocusUnit() == self then
                 tableInsert(units, v)
             end
         end
@@ -1049,9 +1050,9 @@ Unit = Class(moho.unit_methods) {
             elseif focus then -- Handling upgrades
                 local originalBuilder = focus.originalBuilder
 
-                if self:IsUnitState('Upgrading') then
+                if IsUnitState(self, 'Upgrading') then
                     baseData = bpEconomy -- Upgrading myself, subtract ev. baseCost
-                elseif originalBuilder and not originalBuilder.Dead and originalBuilder:IsUnitState('Upgrading') and originalBuilder:GetFocusUnit() == focus then
+                elseif originalBuilder and not originalBuilder.Dead and IsUnitState(originalBuilder, 'Upgrading') and originalBuilder:GetFocusUnit() == focus then
                     baseData = bpEconomy
                 end
 
@@ -1063,7 +1064,7 @@ Unit = Class(moho.unit_methods) {
             if targetData then -- Upgrade/enhancement
                 time, energy, mass = GetConstructEconomyModel(self, targetData, baseData)
             elseif focus then -- Building/repairing something
-                if focus:IsUnitState('SiloBuildingAmmo') then
+                if IsUnitState(focus, 'SiloBuildingAmmo') then
                     local siloBuildRate = focus:GetBuildRate() or 1
                     time, energy, mass = GetConstructEconomyModel(focus, focus.SiloProjectile)
                     energy = (energy / siloBuildRate) * (self:GetBuildRate() or 1)
@@ -2301,9 +2302,9 @@ Unit = Class(moho.unit_methods) {
             if not focus then return end
 
             local cmd
-            if guarded:IsUnitState('Reclaiming') then
+            if IsUnitState(guarded, 'Reclaiming') then
                 cmd = IssueReclaim
-            elseif guarded:IsUnitState('Building') then
+            elseif IsUnitState(guarded, 'Building') then
                 cmd = IssueRepair
             end
 
@@ -2317,7 +2318,7 @@ Unit = Class(moho.unit_methods) {
 
     CheckAssistersFocus = function(self)
         for _, u in self:GetGuards() do
-            if u:IsUnitState('Repairing') then
+            if IsUnitState(u, 'Repairing') then
                 u:CheckAssistFocus()
             end
         end
