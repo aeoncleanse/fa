@@ -290,9 +290,9 @@ Unit = Class(moho.unit_methods) {
             damageamounts = 2
         end
 
-        self.FxDamage1Amount = self.FxDamage1Amount or damageamounts
-        self.FxDamage2Amount = self.FxDamage2Amount or damageamounts
-        self.FxDamage3Amount = self.FxDamage3Amount or damageamounts
+        self.FxDamage1Amount = damageamounts
+        self.FxDamage2Amount = damageamounts
+        self.FxDamage3Amount = damageamounts
         self.DamageEffectsBag = {
             {},
             {},
