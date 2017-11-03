@@ -65,6 +65,7 @@ local GetHealth = moho.entity_methods.GetHealth
 local GetMaxHealth = moho.entity_methods.GetMaxHealth
 local IsValidBone = moho.entity_methods.IsValidBone
 local GetPosition = moho.entity_methods.GetPosition
+local SetIntelRadius = moho.entity_methods.SetIntelRadius
 
 -- Unit methods
 local GetWeapon = moho.unit_methods.GetWeapon
@@ -320,7 +321,7 @@ Unit = Class(moho.unit_methods) {
             Affects = {},
         }
 
-        self:SetIntelRadius('Vision', bp.Intel.VisionRadius or 0)
+        SetIntelRadius(self, 'Vision', bp.Intel.VisionRadius or 0)
 
         self.CanTakeDamage = true
         self.CanBeKilled = true
