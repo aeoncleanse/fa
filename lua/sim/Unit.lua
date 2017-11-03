@@ -66,6 +66,7 @@ local GetMaxHealth = moho.entity_methods.GetMaxHealth
 local IsValidBone = moho.entity_methods.IsValidBone
 local GetPosition = moho.entity_methods.GetPosition
 local SetIntelRadius = moho.entity_methods.SetIntelRadius
+local GetAIBrain = moho.entity_methods.GetAIBrain
 
 -- Unit methods
 local GetWeapon = moho.unit_methods.GetWeapon
@@ -339,7 +340,8 @@ Unit = Class(moho.unit_methods) {
         self.MassModifier = 0
 
         -- Cheating
-        if self:GetAIBrain().CheatEnabled then
+        self.Brain = GetAIBrain(self)
+        if self.Brain.CheatEnabled then
             ApplyCheatBuffs(self)
         end
 
@@ -436,7 +438,7 @@ Unit = Class(moho.unit_methods) {
         local bp = bps[self.ID]
         local faction = categories[bp.FactionCategory]
         local type = categories[bp.LayerCategory]
-        local aiBrain = self:GetAIBrain()
+        local aiBrain = self.Brain
         local supportfactory = false
 
         -- Sanity check.
@@ -878,7 +880,7 @@ Unit = Class(moho.unit_methods) {
     end,
 
     OnCaptured = function(self, captor)
-        if self and not self.Dead and captor and not captor.Dead and self:GetAIBrain() ~= captor:GetAIBrain() then
+        if self and not self.Dead and captor and not captor.Dead and self.Brain ~= captor.Brain then
             if not self:IsCapturable() then
                 self:Kill()
                 return
@@ -905,7 +907,7 @@ Unit = Class(moho.unit_methods) {
 
             -- Ignore army cap during unit transfer in Campaign
             if ScenarioInfo.CampaignMode then
-                captorBrain = captor:GetAIBrain()
+                captorBrain = captor.Brain
                 SetIgnoreArmyUnitCap(captorArmyIndex, true)
             end
 
@@ -1005,7 +1007,7 @@ Unit = Class(moho.unit_methods) {
             end
         end
 
-        local workers = self:GetAIBrain():GetUnitsAroundPoint(categories.REPAIR, GetPosition(self), 50, 'Ally')
+        local workers = self.Brain:GetUnitsAroundPoint(categories.REPAIR, GetPosition(self), 50, 'Ally')
         for _, v in workers do
             if not v.Dead and v:IsUnitState('Repairing') and v:GetFocusUnit() == self then
                 tableInsert(units, v)
@@ -1393,7 +1395,7 @@ Unit = Class(moho.unit_methods) {
             end
         end
 
-        self:GetAIBrain():OnBrainUnitVeterancyLevel(self, level)
+        self.Brain:OnBrainUnitVeterancyLevel(self, level)
         self:DoVeterancyHealing(level)
 
         self:DoUnitCallbacks('OnVeteran')
@@ -2000,7 +2002,7 @@ Unit = Class(moho.unit_methods) {
     OnStartBeingBuilt = function(self, builder, layer)
         self:StartBeingBuiltEffects(builder, layer)
 
-        local aiBrain = self:GetAIBrain()
+        local aiBrain = self.Brain
         if tableGetn(aiBrain.UnitBuiltTriggerList) > 0 then
             for _, v in aiBrain.UnitBuiltTriggerList do
                 if EntityCategoryContains(v.Category, self) then
@@ -2019,7 +2021,7 @@ Unit = Class(moho.unit_methods) {
             WaitSeconds(1)
         end
 
-        local aiBrain = self:GetAIBrain()
+        local aiBrain = self.Brain
         for k, v in aiBrain.UnitBuiltTriggerList do
             if v.Callback == callback then
                 callback(self)
@@ -2564,7 +2566,7 @@ Unit = Class(moho.unit_methods) {
         if self and not self.Dead then
             local bp = bps[self.ID]
             local radius = bp.Intel.CloakFieldRadius - 2 -- Need to take off 2, because engine reasons
-            local brain = self:GetAIBrain()
+            local brain = self.Brain
 
             while self and not self.Dead and self:IsIntelEnabled('CloakField') do
                 local pos = GetPosition(self)
@@ -2638,7 +2640,7 @@ Unit = Class(moho.unit_methods) {
 
     -- This thread is only activated if the unit is known to have to watch its intel, or if it is capable of upgrading such that it has to
     IntelWatchThread = function(self)
-        local aiBrain = self:GetAIBrain()
+        local aiBrain = self.Brain
         local bp = bps[self.ID]
         local recharge = bp.Intel.ReactivateTime or 10
         local watchIntel = bp.WatchPowerForIntel
@@ -3811,7 +3813,7 @@ Unit = Class(moho.unit_methods) {
     OnStartTransportBeamUp = function(self, transport, bone)
         local slot = transport.slots[bone]
         if slot then
-            self:GetAIBrain():OnTransportFull()
+            self.Brain:OnTransportFull()
             IssueClearCommands({self})
             return
         end
