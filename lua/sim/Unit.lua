@@ -256,12 +256,12 @@ Unit = Class(moho.unit_methods) {
         self.IdleEffectsBag = {}
         self.TopSpeedEffectsBag = {}
         self.BeamExhaustEffectsBag = {}
-        self.TransportBeamEffectsBag = {}
-        self.BuildEffectsBag = TrashBag()
-        self.ReclaimEffectsBag = TrashBag()
+        self.TransportBeamEffectsBag = {}--move
+        self.BuildEffectsBag = TrashBag() --move
+        self.ReclaimEffectsBag = TrashBag()--move
         self.OnBeingBuiltEffectsBag = TrashBag()
-        self.CaptureEffectsBag = TrashBag()
-        self.UpgradeEffectsBag = TrashBag()
+        self.CaptureEffectsBag = TrashBag()--move
+        self.UpgradeEffectsBag = TrashBag()--move
         self.TeleportFxBag = TrashBag()
 
         -- Store targets and attackers for proper Stealth management
@@ -415,6 +415,7 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- Move to a weaponunit class
     SetTargetPriorities = function(self, priTable)
         for i = 1, GetWeaponCount(self) do
             local wep = GetWeapon(self, i)
@@ -422,6 +423,7 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- Move to a weaponunit class
     SetLandTargetPriorities = function(self, priTable)
         for i = 1, GetWeaponCount(self) do
             local wep = GetWeapon(self, i)
@@ -435,6 +437,7 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- Move to a production unit class
     -- Updates build restrictions of any unit passed, used for support factories
     updateBuildRestrictions = function(self)
         local bp = bps[self.ID]
@@ -636,11 +639,13 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- Move to a production unit class?
     OnPaused = function(self)
         self:SetActiveConsumptionInactive()
         self:StopUnitAmbientSound('ConstructLoop')
     end,
 
+    -- Move to a production unit class?
     OnUnpaused = function(self)
         if IsUnitState(self, 'Building') or IsUnitState(self, 'Upgrading') or IsUnitState(self, 'Repairing') then
             self:SetActiveConsumptionActive()
@@ -706,6 +711,7 @@ Unit = Class(moho.unit_methods) {
     OnInactive = function(self)
     end,
 
+    -- Move to a production unit class
     OnStartCapture = function(self, target)
         self:DoUnitCallbacks('OnStartCapture', target)
         self:StartCaptureEffects(target)
@@ -713,6 +719,7 @@ Unit = Class(moho.unit_methods) {
         self:PlayUnitAmbientSound('CaptureLoop')
     end,
 
+    -- Move to a production unit class
     OnStopCapture = function(self, target)
         self:DoUnitCallbacks('OnStopCapture', target)
         self:StopCaptureEffects(target)
@@ -720,17 +727,21 @@ Unit = Class(moho.unit_methods) {
         self:StopUnitAmbientSound('CaptureLoop')
     end,
 
+    -- Move to a production unit class
     StartCaptureEffects = function(self, target)
         self.CaptureEffectsBag:Add(self:ForkThread(self.CreateCaptureEffects, target))
     end,
 
+    -- Move to a production unit class
     CreateCaptureEffects = function(self, target)
     end,
 
+    -- Move to a production unit class
     StopCaptureEffects = function(self, target)
         self.CaptureEffectsBag:Destroy()
     end,
 
+    -- Move to a production unit class
     OnFailedCapture = function(self, target)
         self:DoUnitCallbacks('OnFailedCapture', target)
         self:StopCaptureEffects(target)
@@ -814,6 +825,7 @@ Unit = Class(moho.unit_methods) {
         self:Destroy()
     end,
 
+    -- Move to a production unit class
     OnStartRepair = function(self, unit)
         unit.Repairers[self.EntityId] = self
 
@@ -831,9 +843,11 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- Move to a production unit class
     OnStopRepair = function(self, unit)
     end,
 
+    -- Move to a production unit class
     OnStartReclaim = function(self, target)
         self:SetUnitState('Reclaiming', true)
         self:SetFocusEntity(target)
@@ -852,6 +866,7 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- Move to a production unit class
     OnStopReclaim = function(self, target)
         self:DoUnitCallbacks('OnStopReclaim', target)
         self:StopReclaimEffects(target)
@@ -863,16 +878,20 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- Move to a production unit class
     StartReclaimEffects = function(self, target)
         self.ReclaimEffectsBag:Add(self:ForkThread(self.CreateReclaimEffects, target))
     end,
 
+    -- Move to a production unit class
     CreateReclaimEffects = function(self, target)
     end,
 
+    -- Move to a production unit class
     CreateReclaimEndEffects = function(self, target)
     end,
 
+    -- Move to a production unit class
     StopReclaimEffects = function(self, target)
         self.ReclaimEffectsBag:Destroy()
     end,
@@ -982,11 +1001,13 @@ Unit = Class(moho.unit_methods) {
         self:UpdateConsumptionValues()
     end,
 
+    -- Move to a production unit class
     OnProductionPaused = function(self)
         self:SetMaintenanceConsumptionInactive()
         SetProductionActive(self, false)
     end,
 
+    -- Move to a production unit class
     OnProductionUnpaused = function(self)
         self:SetMaintenanceConsumptionActive()
         SetProductionActive(self, true)
@@ -996,10 +1017,12 @@ Unit = Class(moho.unit_methods) {
         self.BuildTimeMultiplier = time_mult
     end,
 
+    -- Move to a production unit class
     GetBuildRate = function(self)
         return mathMax(MohoGetBuildRate(self), 0.00001) -- Make sure we're never returning 0, this value will be used to divide with
     end,
 
+    -- Move to a production unit class
     UpdateAssistersConsumption = function(self)
         local units = {}
         -- We need to check all the units assisting.
@@ -1349,6 +1372,7 @@ Unit = Class(moho.unit_methods) {
         return mass * fractionComplete * (bp.VeteranImportanceMult or 1) + (self.cargoMass or 0)
     end,
 
+    -- Move to a weaponunit class
     --- Called when this unit kills another. Chiefly responsible for the veterancy system for now.
     OnKilledUnit = function(self, unitKilled, massKilled)
         if not massKilled or massKilled == 0 then return end -- Make sure engine calls aren't passed with massKilled == 0
@@ -1359,6 +1383,7 @@ Unit = Class(moho.unit_methods) {
         ArmyBrains[self.Army]:AddUnitStat(unitKilled.ID, "kills", 1)
     end,
 
+    -- Move to a weaponunit class
     CalculateVeterancyLevel = function(self, massKilled)
         local bp = self:GetBlueprint()
 
@@ -1380,6 +1405,7 @@ Unit = Class(moho.unit_methods) {
         self:SetVeteranLevel(self.Sync.VeteranLevel)
     end,
 
+    -- Move to a weaponunit class
     -- Use this to set a veterancy level directly, usually used by a scenario
     SetVeterancy = function(self, veteranLevel)
         if veteranLevel <= 0 or veteranLevel > 5 then return end
@@ -1388,6 +1414,7 @@ Unit = Class(moho.unit_methods) {
         self:CalculateVeterancyLevel(self.Sync.myValue * veteranLevel)
     end,
 
+    -- Move to a weaponunit class
     -- Set the veteran level to the level specified
     SetVeteranLevel = function(self, level)
         local buffs = self:CreateVeterancyBuffs(level)
@@ -1403,6 +1430,7 @@ Unit = Class(moho.unit_methods) {
         self:DoUnitCallbacks('OnVeteran')
     end,
 
+    -- Move to a weaponunit class
     -- Veterancy can't be 'Undone', so we heal the unit directly, one-off, rather than using a buff. Much more flexible.
     DoVeterancyHealing = function(self, level)
         local bp = self:GetBlueprint()
@@ -1412,6 +1440,7 @@ Unit = Class(moho.unit_methods) {
         self:AdjustHealth(self, maxHealth * mult) -- Adjusts health by the given value (Can be +tv or -tv), not to the given value
     end,
 
+    -- Move to a weaponunit class
     CreateVeterancyBuffs = function(self, level)
         local healthBuffName = 'VeterancyMaxHealth' .. level -- Currently there is no difference between units, therefore no need for unique buffs
         local regenBuffName = self.ID .. 'VeterancyRegen' .. level -- Generate a buff based on the unitId - eg. uel0001VeterancyRegen3
@@ -1460,6 +1489,7 @@ Unit = Class(moho.unit_methods) {
         return {regenBuffName, healthBuffName}
     end,
 
+    -- Move to a weaponunit class or remove?
     -- Returns true if a unit can gain veterancy (Has a weapon)
     ShouldUseVetSystem = function(self)
         local weps = self:GetBlueprint().Weapon
@@ -1483,6 +1513,7 @@ Unit = Class(moho.unit_methods) {
     -- End of Veterancy Section
     ------------------------------------------------------------------------------
 
+    -- Move to a weaponunit class
     DoDeathWeapon = function(self)
         if self:IsBeingBuilt() then return end
 
@@ -1660,6 +1691,7 @@ Unit = Class(moho.unit_methods) {
         explosion.CreateScalableUnitExplosion(self, overKillRatio)
     end,
 
+    -- Move to a weaponunit class
     DeathWeaponDamageThread = function(self, damageRadius, damage, damageType, damageFriendly)
         WaitSeconds(0.1)
         DamageArea(self, GetPosition(self), damageRadius or 1, damage or 1, damageType or 'Normal', damageFriendly or false)
@@ -1823,6 +1855,7 @@ Unit = Class(moho.unit_methods) {
         self:Destroy()
     end,
 
+    -- Move some to a production unit class 
     DestroyAllBuildEffects = function(self)
         if self.BuildEffectsBag then
             self.BuildEffectsBag:Destroy()
@@ -1898,15 +1931,19 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- remove in exe
     --- Called under mysterous circumstances, previously held logic for nonexistent sound effects.
     OnDamageBy = function(self, index) end,
 
+    -- create an FX for this, it's cool
     --- Called when a nuke is armed, played a nonexistent sound effect
     OnNukeArmed = function(self) end,
 
+    -- create an FX for this, it's cool
     OnNukeLaunched = function(self)
     end,
 
+    -- Move to a weapon unit class??? nuke class??
     --- STRATEGIC LAUNCH DETECTED
     NukeCreatedAtUnit = function(self)
         if self:GetNukeSiloAmmoCount() <= 0 then
@@ -1925,6 +1962,7 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- Move to a weapon unit class
     SetAllWeaponsEnabled = function(self, enable)
         for i = 1, GetWeaponCount(self) do
             local wep = GetWeapon(self, i)
@@ -1933,6 +1971,7 @@ Unit = Class(moho.unit_methods) {
         end
     end,
 
+    -- Move to a weapon unit class
     SetWeaponEnabledByLabel = function(self, label, enable)
         local wep = self:GetWeaponByLabel(label)
         if not wep then return end
@@ -1944,11 +1983,13 @@ Unit = Class(moho.unit_methods) {
         wep:AimManipulatorSetEnabled(enable)
     end,
 
+    -- Move to a weapon unit class
     GetWeaponManipulatorByLabel = function(self, label)
         local wep = self:GetWeaponByLabel(label)
         return wep:GetAimManipulator()
     end,
 
+    -- Move to a weapon unit class
     GetWeaponByLabel = function(self, label)
         local wep
         for i = 1, GetWeaponCount(self) do
@@ -1961,11 +2002,13 @@ Unit = Class(moho.unit_methods) {
         return nil
     end,
 
+    -- Move to a weapon unit class
     ResetWeaponByLabel = function(self, label)
         local wep = self:GetWeaponByLabel(label)
         wep:ResetTarget()
     end,
 
+    -- Move to a weapon unit class
     SetDeathWeaponEnabled = function(self, enable)
         self.DeathWeaponEnabled = enable
     end,
@@ -2192,11 +2235,13 @@ Unit = Class(moho.unit_methods) {
         end)
     end,
 
+    -- Move to a silo class?
     OnSiloBuildStart = function(self, weapon)
         self.SiloWeapon = weapon
         self.SiloProjectile = weapon:GetProjectileBlueprint()
     end,
 
+    -- Move to a silo class?
     OnSiloBuildEnd = function(self, weapon)
         self.SiloWeapon = nil
         self.SiloProjectile = nil
