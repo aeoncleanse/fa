@@ -248,6 +248,7 @@ Unit = Class(moho.unit_methods) {
 
     OnCreate = function(self)
         Entity.OnCreate(self)
+        
         -- Turn off land bones if this unit has them.
         self:HideLandBones()
 
@@ -1420,7 +1421,7 @@ Unit = Class(moho.unit_methods) {
         local buffs = self:CreateVeterancyBuffs(level)
         if buffs then
             for _, buffName in buffs do
-                Buff.ApplyBuff(self, buffName)
+                ApplyBuff(self, buffName)
             end
         end
 
