@@ -2487,7 +2487,7 @@ Unit = Class(moho.unit_methods) {
     DisableUnitIntel = function(self, disabler, intel)
         local function DisableOneIntel(disabler, intel)
             local intDisabled = false
-            if Set.Empty(self.IntelDisables[intel]) then
+            if setEmpty(self.IntelDisables[intel]) then
                 local active = GetBlueprint(self).Intel.ActiveIntel
                 if active and active[intel] then
                     return
