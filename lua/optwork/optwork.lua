@@ -1,3 +1,18 @@
+local Unit = import('/lua/sim/Unit.lua').Unit
+local EffectTemplate = import('/lua/EffectTemplates.lua')
+local GetTarmac = import('/lua/tarmacs.lua').GetTarmacType
+
+local bps = __blueprints
+
+local GetPosition = moho.entity_methods.GetPosition
+local GetCurrentLayer = moho.unit_methods.GetCurrentLayer
+local HideBone = moho.unit_methods.HideBone
+local ShowBone = moho.unit_methods.ShowBone
+local GetArmy = moho.entity_methods.GetArmy
+
+local tableGetn = table.getn
+local tableInsert = table.insert
+
 StructureUnit = Class(Unit) {
     -- Stucture unit specific damage effects and smoke
     FxDamage1 = {EffectTemplate.DamageStructureSmoke01, EffectTemplate.DamageStructureSparks01},
@@ -7,11 +22,7 @@ StructureUnit = Class(Unit) {
     OnCreate = function(self)
         Unit.OnCreate(self)
         self.FxBlinkingLightsBag = {}
-        self.CachePosition = self:GetCachePosition()
-    end,
-    
-    GetCachePosition = function(self)
-        return self.CachePosition or GetPosition(self)
+        self.Position = GetPosition(self) -- Structures can't move
     end,
     
     OnStopBeingBuilt = function(self, builder, layer)
@@ -29,6 +40,18 @@ AmphibiousStructureUnit = Class(LandStructureUnit) {
             HideBone(self, v, true)
         end
     end,
+    
+    OnCreate = function(self)
+        StructureUnit.OnCreate(self)
+        if GetCurrentLayer(self) == 'Land' and bps[self.ID].Physics.FlattenSkirt then
+            self:FlattenSkirt()
+        end
+    end,
+    
+    CreateTarmac = function(self, albedo, normal, glow, orientation, specTarmac, lifeTime)
+        if GetCurrentLayer(self) ~= 'Land' then return end
+        LandStructureUnit.CreateTarmac(self, albedo, normal, glow, orientation, specTarmac, lifeTime)
+    end,
 }
 
 NavalStructureUnit = Class(StructureUnit) {
@@ -36,18 +59,16 @@ NavalStructureUnit = Class(StructureUnit) {
 
 LandStructureUnit = Class(StructureUnit) {
     OnCreate = function(self)
-        LandStructureUnit.OnCreate(self)
-        if self:GetCurrentLayer() == 'Land' and self:GetBlueprint().Physics.FlattenSkirt then
+        StructureUnit.OnCreate(self)
+        if bps[self.ID].Physics.FlattenSkirt then
             self:FlattenSkirt()
         end
     end,
-}
-
-UEFLandStructureUnit = Class(LandStructureUnit) {
+    
     OnStartBeingBuilt = function(self, builder, layer)
-        LandStructureUnit.OnStartBeingBuilt(self, builder, layer)
-        local bp = self:GetBlueprint()
-        if bp.Physics.FlattenSkirt and not self:HasTarmac() then
+        StructureUnit.OnStartBeingBuilt(self, builder, layer)
+        local bp = bps[self.ID]
+        if bp.Physics.FlattenSkirt and not self:HasTarmac() and self.factionCategory ~= "SERAPHIM" then
             if self.TarmacBag then
                 self:CreateTarmac(true, true, true, self.TarmacBag.Orientation, self.TarmacBag.CurrentBP)
             else
@@ -55,44 +76,134 @@ UEFLandStructureUnit = Class(LandStructureUnit) {
             end
         end
     end,
-}
-
-CybranLandStructureUnit = Class(LandStructureUnit) {
-    OnStartBeingBuilt = function(self, builder, layer)
-        LandStructureUnit.OnStartBeingBuilt(self, builder, layer)
-        local bp = self:GetBlueprint()
-        if bp.Physics.FlattenSkirt and not self:HasTarmac() then
-            if self.TarmacBag then
-                self:CreateTarmac(true, true, true, self.TarmacBag.Orientation, self.TarmacBag.CurrentBP)
-            else
-                self:CreateTarmac(true, true, true, false, false)
-            end
-        end
-    end,
-}
-
-AeonLandStructureUnit = Class(LandStructureUnit) {
-    OnStartBeingBuilt = function(self, builder, layer)
-        LandStructureUnit.OnStartBeingBuilt(self, builder, layer)
-        local bp = self:GetBlueprint()
-        if bp.Physics.FlattenSkirt and not self:HasTarmac() then
-            if self.TarmacBag then
-                self:CreateTarmac(true, true, true, self.TarmacBag.Orientation, self.TarmacBag.CurrentBP)
-            else
-                self:CreateTarmac(true, true, true, false, false)
-            end
-        end
-    end,
-}
-
-SeraphimLandStructureUnit = Class(LandStructureUnit) {
+    
     OnStopBeingBuilt = function(self, builder, layer)
-        LandStructureUnit.OnStopBeingBuilt(self, builder, layer)
-        self:CreateTarmac(true, true, true, false, false)
+        StructureUnit.OnStopBeingBuilt(self, builder, layer)
+
+        -- Why can't we have sane inheritance chains?
+        if self.factionCategory == "SERAPHIM" then
+            self:CreateTarmac(true, true, true, false, false)
+        end
+    end,
+    
+    OnFailedToBeBuilt = function(self)
+        Unit.OnFailedToBeBuilt(self)
+        self:DestroyTarmac()
+    end,
+    
+    FlattenSkirt = function(self)
+        local x, y, z = unpack(self.Position)
+        local x0, z0, x1, z1 = self:GetSkirtRect()
+        x0, z0, x1, z1 = math.floor(x0), math.floor(z0), math.ceil(x1), math.ceil(z1)
+        FlattenMapRect(x0, z0, x1 - x0, z1 - z0, y)
+    end,
+
+    -- Returns 4 numbers: skirt x0, skirt z0, skirt.x1, skirt.z1
+    GetSkirtRect = function(self)
+        local bp = bps[self.ID]
+        local x, y, z = unpack(self.Position)
+        local fx = x - bp.Footprint.SizeX * 0.5
+        local fz = z - bp.Footprint.SizeZ * 0.5
+        local sx = fx + bp.Physics.SkirtOffsetX
+        local sz = fz + bp.Physics.SkirtOffsetZ
+        return sx, sz, sx + bp.Physics.SkirtSizeX, sz + bp.Physics.SkirtSizeZ
+    end,
+
+    CreateTarmac = function(self, albedo, normal, glow, orientation, specTarmac, lifeTime)
+        local tarmac
+        local bp = bps[self.ID].Display.Tarmacs
+        if not specTarmac then
+            if bp and tableGetn(bp) > 0 then
+                local num = Random(1, tableGetn(bp))
+                tarmac = bp[num]
+            else
+                return false
+            end
+        else
+            tarmac = specTarmac
+        end
+
+        local army = GetArmy(self)
+        local w = tarmac.Width
+        local l = tarmac.Length
+        local fadeout = tarmac.FadeOut
+
+        local x, y, z = unpack(self.Position)
+
+        local orient = orientation
+        if not orientation then
+            if tarmac.Orientations and tableGetn(tarmac.Orientations) > 0 then
+                orient = tarmac.Orientations[Random(1, tableGetn(tarmac.Orientations))]
+                orient = (0.01745 * orient)
+            else
+                orient = 0
+            end
+        end
+
+        if not self.TarmacBag then
+            self.TarmacBag = {
+                Decals = {},
+                Orientation = orient,
+                CurrentBP = tarmac,
+            }
+        end
+
+        local terrain = GetTerrainType(x, z)
+        local terrainName = terrain.Name
+
+        -- Players and AI can build buildings outside of their faction. Get the *building's* faction to determine the correct tarrain-specific tarmac
+        local factionTable = {e = 1, a = 2, r = 3, s = 4}
+        local faction  = factionTable[string.sub(self:GetUnitId(), 2, 2)]
+        if albedo and tarmac.Albedo then
+            local albedo2 = tarmac.Albedo2
+            if albedo2 then
+                albedo2 = albedo2 .. GetTarmac(faction, terrain)
+            end
+
+            local tarmacHndl = CreateDecal(self:GetCachePosition(), orient, tarmac.Albedo .. GetTarmac(faction, terrainName) , albedo2 or '', 'Albedo', w, l, fadeout, lifeTime or 0, army, 0)
+            tableInsert(self.TarmacBag.Decals, tarmacHndl)
+            if tarmac.RemoveWhenDead then
+                self.Trash:Add(tarmacHndl)
+            end
+        end
+
+        if normal and tarmac.Normal then
+            local tarmacHndl = CreateDecal(self:GetCachePosition(), orient, tarmac.Normal .. GetTarmac(faction, terrainName), '', 'Alpha Normals', w, l, fadeout, lifeTime or 0, army, 0)
+
+            tableInsert(self.TarmacBag.Decals, tarmacHndl)
+            if tarmac.RemoveWhenDead then
+                self.Trash:Add(tarmacHndl)
+            end
+        end
+
+        if glow and tarmac.Glow then
+            local tarmacHndl = CreateDecal(self:GetCachePosition(), orient, tarmac.Glow .. GetTarmac(faction, terrainName), '', 'Glow', w, l, fadeout, lifeTime or 0, army, 0)
+
+            tableInsert(self.TarmacBag.Decals, tarmacHndl)
+            if tarmac.RemoveWhenDead then
+                self.Trash:Add(tarmacHndl)
+            end
+        end
+    end,
+
+    DestroyTarmac = function(self)
+        if not self.TarmacBag then return end
+
+        for k, v in self.TarmacBag.Decals do
+            v:Destroy()
+        end
+
+        self.TarmacBag.Orientation = nil
+        self.TarmacBag.CurrentBP = nil
+    end,
+
+    HasTarmac = function(self)
+        if not self.TarmacBag then return false end
+        return table.getn(self.TarmacBag.Decals) ~= 0
     end,
 }
 
-WeaponStructureUnit = Class(StructureUnit, WeaponUnit) {
+WeaponStructureUnit = Class(AmphibiousStructureUnit, WeaponUnit) {
     OnStartBeingBuilt = function(self, builder, layer)
         StructureUnit.OnStartBeingBuilt(self, builder, layer)
         WeaponUnit.OnStartBeingBuilt(self, builder, layer)
@@ -100,14 +211,13 @@ WeaponStructureUnit = Class(StructureUnit, WeaponUnit) {
     end,
 
     RotateTowardsEnemy = function(self)
-        local bp = self:GetBlueprint()
         local army = self:GetArmy()
         local brain = self:GetAIBrain()
         local pos = self:GetCachePosition()
         local x, y = GetMapSize()
         local threats = {{pos = {x / 2, 0, y / 2}, dist = VDist2(pos[1], pos[3], x, y), threat = -1}}
         local cats = EntityCategoryContains(categories.ANTIAIR, self) and categories.AIR or (categories.STRUCTURE + categories.LAND + categories.NAVAL)
-        local units = brain:GetUnitsAroundPoint(cats, pos, 2 * (bp.AI.GuardScanRadius or 100), 'Enemy')
+        local units = brain:GetUnitsAroundPoint(cats, pos, 2 * (bps[self.ID].AI.GuardScanRadius or 100), 'Enemy')
         for _, u in units do
             local blip = u:GetBlip(army)
             if blip then
@@ -246,12 +356,12 @@ StructureUnit = Class(Unit) {
         self:PlayActiveAnimation()
     end,--]]
 
-    OnFailedToBeBuilt = function(self)
+    --[[OnFailedToBeBuilt = function(self)
         Unit.OnFailedToBeBuilt(self)
         self:DestroyTarmac()
-    end,
+    end,--]]
 
-    FlattenSkirt = function(self)
+    --[[FlattenSkirt = function(self)
         local x, y, z = unpack(self:GetCachePosition())
         local x0, z0, x1, z1 = self:GetSkirtRect()
         x0, z0, x1, z1 = math.floor(x0), math.floor(z0), math.ceil(x1), math.ceil(z1)
@@ -367,7 +477,7 @@ StructureUnit = Class(Unit) {
     HasTarmac = function(self)
         if not self.TarmacBag then return false end
         return table.getn(self.TarmacBag.Decals) ~= 0
-    end,
+    end,--]]
 
     OnMassStorageStateChange = function(self, state)
     end,
