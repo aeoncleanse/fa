@@ -250,7 +250,7 @@ Unit = Class(moho.unit_methods) {
         Entity.OnCreate(self)
         
         -- Turn off land bones if this unit has them.
-        --self:HideLandBones()
+        self:HideLandBones()
 
         -- Set up effect emitter bags
         self.MovementEffectsBag = {}
@@ -1908,7 +1908,7 @@ Unit = Class(moho.unit_methods) {
         ChangeState(self, self.DeadState)
     end,
 
-    --[[HideLandBones = function(self)
+    HideLandBones = function(self)
         -- Hide the bones for buildings built on land
         if self.LandBuiltHiddenBones and GetCurrentLayer(self) == 'Land' then
             for _, v in self.LandBuiltHiddenBones do
@@ -1917,7 +1917,7 @@ Unit = Class(moho.unit_methods) {
                 end
             end
         end
-    end,--]]
+    end,
 
     -- Generic function for showing a table of bones
     -- Table = List of bones
@@ -2129,7 +2129,7 @@ Unit = Class(moho.unit_methods) {
         end
 
         -- Turn off land bones if this unit has them.
-        --self:HideLandBones()
+        self:HideLandBones()
         self:DoUnitCallbacks('OnStopBeingBuilt')
 
         -- Create any idle effects on unit
