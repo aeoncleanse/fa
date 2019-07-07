@@ -313,7 +313,6 @@ UnitBlueprint {
             'BUILTBYCOMMANDER CYBRAN',
             'BUILTBYTIER2COMMANDER CYBRAN',
             'BUILTBYTIER3COMMANDER CYBRAN',
-            'URL0001UPGRADE',
         },
         MaintenanceConsumptionPerSecondEnergy = 0,
         MaxBuildDistance = 10,
