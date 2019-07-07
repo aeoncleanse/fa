@@ -1938,9 +1938,7 @@ ConstructionUnit = Class(MobileUnit) {
         MobileUnit.OnCreate(self)
 
         self.EffectsBag = {}
-        if self:GetBlueprint().General.BuildBones then
-            self:SetupBuildBones()
-        end
+        self:SetupBuildBones()
 
         if self:GetBlueprint().Display.AnimationBuild then
             self.BuildingOpenAnim = self:GetBlueprint().Display.AnimationBuild
