@@ -41,6 +41,13 @@ XSL0301 = Class(CommandUnit) {
         self:GetWeaponByLabel('AutoOverCharge').NeedsUpgrade = true
     end,
 
+    -- Uniquely override, since OC gets enabled/disabled, and we need to toggle in
+    -- a different way with our upgrade
+    SetAutoOvercharge = function(self, auto)
+        if wep.NeedsUpgrade then return end
+        CommandUnit.SetAutoOvercharge(self, auto)
+    end,
+
     CreateBuildEffects = function(self, unitBeingBuilt, order)
         EffectUtil.CreateSeraphimUnitEngineerBuildingEffects(self, unitBeingBuilt, self:GetBlueprint().General.BuildBones.BuildEffectBones, self.BuildEffectsBag)
     end,
