@@ -261,10 +261,7 @@ StructureUnit = Class(Unit) {
     end,
 
     DestroyBlinkingLights = function(self)
-        for _, v in self.FxBlinkingLightsBag do
-            v:Destroy()
-        end
-        self.FxBlinkingLightsBag = {}
+        EffectUtil.CleanupEffectBag(self, 'FxBlinkingLightsBag')
     end,
 
     CreateDestructionEffects = function(self, overkillRatio)

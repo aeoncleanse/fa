@@ -3970,9 +3970,8 @@ Unit = Class(moho.unit_methods) {
     OnStopTransportBeamUp = function(self)
         self:DestroyIdleEffects()
         self:DestroyMovementEffects()
-        for k, v in self.TransportBeamEffectsBag do
-            v:Destroy()
-        end
+
+        EffectUtilities.CleanupEffectBag(self, 'TransportBeamEffectsBag')
 
         -- Reset weapons to ensure torso centres and unit survives drop
         for i = 1, self:GetWeaponCount() do
