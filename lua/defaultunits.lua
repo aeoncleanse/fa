@@ -1578,10 +1578,7 @@ WalkingLandUnit = Class(MobileUnit) {
             end
         elseif new == 'Stopped' then
             -- Only keep the animator around if we are dying and playing a death anim
-            -- Or if we have an idle anim
-            if self.IdleAnim and not self.Dead then
-                self.Animator:PlayAnim(self.IdleAnim, true)
-            elseif not self.DeathAnim or not self.Dead then
+            if not self.DeathAnim or not self.Dead then
                 self.Animator:Destroy()
                 self.Animator = false
             end

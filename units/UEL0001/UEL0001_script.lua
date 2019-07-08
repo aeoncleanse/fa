@@ -42,27 +42,14 @@ UEL0001 = Class(ACUUnit) {
 
     OnStopBeingBuilt = function(self, builder, layer)
         ACUUnit.OnStopBeingBuilt(self, builder, layer)
+
         if self:BeenDestroyed() then return end
-        self.Animator = CreateAnimator(self)
-        self.Animator:SetPrecedence(0)
-        if self.IdleAnim then
-            self.Animator:PlayAnim(self:GetBlueprint().Display.AnimationIdle, true)
-            for k, v in self.DisabledBones do
-                self.Animator:SetBoneEnabled(v, false)
-            end
-        end
+
         self:BuildManipulatorSetEnabled(false)
         self:SetWeaponEnabledByLabel('RightZephyr', true)
         self:SetWeaponEnabledByLabel('TacMissile', false)
         self:SetWeaponEnabledByLabel('TacNukeMissile', false)
         self:ForkThread(self.GiveInitialResources)
-    end,
-
-    OnStartBuild = function(self, unitBeingBuilt, order)
-        ACUUnit.OnStartBuild(self, unitBeingBuilt, order)
-        if self.Animator then
-            self.Animator:SetRate(0)
-        end
     end,
 
     CreateBuildEffects = function(self, unitBeingBuilt, order)
