@@ -1200,7 +1200,7 @@ function CreateEnhancementUnitAmbient(unit, bone, TrashBag)
 end
 
 function CleanupEffectBag(self, EffectBag)
-    for _, v in self[EffectBag] do
+    for _, v in self[EffectBag] or {} do
         v:Destroy()
     end
     self[EffectBag] = {}
