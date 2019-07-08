@@ -18,6 +18,8 @@ local CANTorpedoLauncherWeapon = CWeapons.CANTorpedoLauncherWeapon
 local Entity = import('/lua/sim/Entity.lua').Entity
 
 URL0001 = Class(ACUUnit, CCommandUnit) {
+    RightGunLabel = 'RightRipper',
+
     Weapons = {
         DeathWeapon = Class(DeathNukeWeapon) {},
         RightRipper = Class(CCannonMolecularWeapon) {},
@@ -43,20 +45,9 @@ URL0001 = Class(ACUUnit, CCommandUnit) {
         AutoOverCharge = Class(CDFOverchargeWeapon) {},
     },
 
-    __init = function(self)
-        ACUUnit.__init(self, 'RightRipper')
-    end,
-
     -- Creation
     OnCreate = function(self)
         ACUUnit.OnCreate(self)
-        self:SetCapturable(false)
-        self:HideBones({'Back_Upgrade', 'Right_Upgrade'}, true)
-        if self:GetBlueprint().General.BuildBones then
-            self:SetupBuildBones()
-        end
-        -- Restrict what enhancements will enable later
-        self:AddBuildRestriction(categories.CYBRAN * (categories.BUILTBYTIER2COMMANDER + categories.BUILTBYTIER3COMMANDER))
         
         local wepBp = self:GetBlueprint().Weapon
         self.normalRange = 22
@@ -200,12 +191,10 @@ URL0001 = Class(ACUUnit, CCommandUnit) {
         elseif enh =='AdvancedEngineeringRemove' then
             local bp = self:GetBlueprint().Economy.BuildRate
             if not bp then return end
-            self:RestoreBuildRestrictions()
-            self:AddBuildRestriction(categories.CYBRAN * (categories.BUILTBYTIER2COMMANDER + categories.BUILTBYTIER3COMMANDER))
+            self:SetDefaultBuildRestrictions()
             if Buff.HasBuff(self, 'CybranACUT2BuildRate') then
                 Buff.RemoveBuff(self, 'CybranACUT2BuildRate')
             end
-            self:updateBuildRestrictions()
         -- T3 Engineering
         elseif enh =='T3Engineering' then
             local bp = self:GetBlueprint().Enhancements[enh]
@@ -240,12 +229,10 @@ URL0001 = Class(ACUUnit, CCommandUnit) {
         elseif enh =='T3EngineeringRemove' then
             local bp = self:GetBlueprint().Economy.BuildRate
             if not bp then return end
-            self:RestoreBuildRestrictions()
+            self:SetDefaultBuildRestrictions()
             if Buff.HasBuff(self, 'CybranACUT3BuildRate') then
                 Buff.RemoveBuff(self, 'CybranACUT3BuildRate')
             end
-            self:AddBuildRestriction(categories.CYBRAN * (categories.BUILTBYTIER2COMMANDER + categories.BUILTBYTIER3COMMANDER))
-            self:updateBuildRestrictions()
         elseif enh =='CoolingUpgrade' then
             local bp = self:GetBlueprint().Enhancements[enh]
             local wep = self:GetWeaponByLabel('RightRipper')

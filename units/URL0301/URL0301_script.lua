@@ -14,6 +14,7 @@ local CDFLaserDisintegratorWeapon = CWeapons.CDFLaserDisintegratorWeapon02
 local SCUDeathWeapon = import('/lua/sim/defaultweapons.lua').SCUDeathWeapon
 
 URL0301 = Class(CCommandUnit) {
+    RightGunLabel = 'RightDisintegrator',
     LeftFoot = 'Left_Foot02',
     RightFoot = 'Right_Foot02',
 
@@ -29,27 +30,6 @@ URL0301 = Class(CCommandUnit) {
         NMissile = Class(CAAMissileNaniteWeapon) {},
     },
 
-    -- Creation
-    OnCreate = function(self)
-        CCommandUnit.OnCreate(self)
-        self:SetCapturable(false)
-        self:HideBones({'AA_Gun',
-                       'Power_Pack',
-                       'Rez_Protocol',
-                       'Torpedo',
-                       'Turbine'},
-                       true)
-        self:SetWeaponEnabledByLabel('NMissile', false)
-        if self:GetBlueprint().General.BuildBones then
-            self:SetupBuildBones()
-        end
-        self.IntelButtonSet = true
-    end,
-
-    __init = function(self)
-        CCommandUnit.__init(self, 'RightDisintegrator')
-    end,
-
     -- Engineering effects
     CreateBuildEffects = function(self, unitBeingBuilt, order)
        EffectUtil.SpawnBuildBots(self, unitBeingBuilt, self.BuildEffectsBag)
@@ -60,6 +40,9 @@ URL0301 = Class(CCommandUnit) {
         CCommandUnit.OnStopBeingBuilt(self, builder, layer)
         self:BuildManipulatorSetEnabled(false)
         self:SetMaintenanceConsumptionInactive()
+        self:SetWeaponEnabledByLabel('NMissile', false)
+        self.IntelButtonSet = true
+
         -- Disable enhancement-based Intels until enhancements are built
         self:DisableUnitIntel('Enhancement', 'RadarStealth')
         self:DisableUnitIntel('Enhancement', 'SonarStealth')

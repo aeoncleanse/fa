@@ -2094,8 +2094,18 @@ SlowHoverLandUnit = Class(HoverLandUnit) {
 CommandUnit = Class(WalkingLandUnit) {
     DeathThreadDestructionWaitTime = 2,
 
-    __init = function(self, rightGunName)
-        self.rightGunLabel = rightGunName
+    OnCreate = function(self)
+        WalkingLandUnit.OnCreate(self)
+
+        self:SetCapturable(false)
+        self:SetupBuildBones()
+        self:HideBones(self:GetBlueprint().Display.WarpInEffect.HideBones, true)
+        self:SetDefaultBuildRestrictions()
+    end,
+
+    SetDefaultBuildRestrictions = function(self)
+        self:updateBuildRestrictions() -- Engine function which resets to bp.Economy.BuildableCategory
+        self:AddBuildRestriction(categories[self.factionCategory] * (categories.BUILTBYTIER2COMMANDER + categories.BUILTBYTIER3COMMANDER))
     end,
 
     ResetRightArm = function(self)

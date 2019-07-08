@@ -13,6 +13,8 @@ local TDFHeavyPlasmaCannonWeapon = TWeapons.TDFHeavyPlasmaCannonWeapon
 local SCUDeathWeapon = import('/lua/sim/defaultweapons.lua').SCUDeathWeapon
 
 UEL0301 = Class(CommandUnit) {
+    RightGunLabel = 'RightHeavyPlasmaCannon',
+
     IntelEffects = {
         {
             Bones = {
@@ -27,17 +29,6 @@ UEL0301 = Class(CommandUnit) {
         RightHeavyPlasmaCannon = Class(TDFHeavyPlasmaCannonWeapon) {},
         DeathWeapon = Class(SCUDeathWeapon) {},
     },
-
-    OnCreate = function(self)
-        CommandUnit.OnCreate(self)
-        self:SetCapturable(false)
-        self:HideBones({'Jetpack', 'SAM'}, true)
-        self:SetupBuildBones()
-    end,
-
-    __init = function(self)
-        CommandUnit.__init(self, 'RightHeavyPlasmaCannon')
-    end,
 
     OnStopBeingBuilt = function(self, builder, layer)
         CommandUnit.OnStopBeingBuilt(self, builder, layer)

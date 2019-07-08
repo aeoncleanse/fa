@@ -15,6 +15,8 @@ local SDFOverChargeWeapon = SWeapons.SDFLightChronotronCannonOverchargeWeapon
 local SIFLaanseTacticalMissileLauncher = SWeapons.SIFLaanseTacticalMissileLauncher
 
 XSL0301 = Class(CommandUnit) {
+    RightGunLabel = 'LightChronatronCannon',
+
     Weapons = {
         LightChronatronCannon = Class(SDFLightChronotronCannonWeapon) {},
         DeathWeapon = Class(SCUDeathWeapon) {},
@@ -28,15 +30,9 @@ XSL0301 = Class(CommandUnit) {
         },
     },
 
-    __init = function(self)
-        CommandUnit.__init(self, 'LightChronatronCannon')
-    end,
+    OnStopBeingBuilt = function(self, builder, layer)
+        CCommandUnit.OnStopBeingBuilt(self, builder, layer)
 
-    OnCreate = function(self)
-        CommandUnit.OnCreate(self)
-        self:SetCapturable(false)
-        self:HideBones({'Back_Upgrade'}, true)
-        self:SetupBuildBones()
         self:GetWeaponByLabel('OverCharge').NeedsUpgrade = true
         self:GetWeaponByLabel('AutoOverCharge').NeedsUpgrade = true
     end,

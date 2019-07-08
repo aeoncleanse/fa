@@ -13,14 +13,12 @@ local EffectUtil = import('/lua/EffectUtilities.lua')
 local Buff = import('/lua/sim/Buff.lua')
 
 UAL0301 = Class(CommandUnit) {
+    RightGunLabel = 'RightReactonCannon',
+
     Weapons = {
         RightReactonCannon = Class(ADFReactonCannon) {},
         DeathWeapon = Class(SCUDeathWeapon) {},
     },
-
-    __init = function(self)
-        CommandUnit.__init(self, 'RightReactonCannon')
-    end,
 
     OnStopBuild = function(self, unitBeingBuilt)
         CommandUnit.OnStopBuild(self, unitBeingBuilt)
@@ -31,13 +29,6 @@ UAL0301 = Class(CommandUnit) {
         self.UnitBeingBuilt = nil
         self.UnitBuildOrder = nil
         self.BuildingUnit = false
-    end,
-
-    OnCreate = function(self)
-        CommandUnit.OnCreate(self)
-        self:SetCapturable(false)
-        self:HideBones({'Turbine'}, true)
-        self:SetupBuildBones()
     end,
 
     CreateBuildEffects = function(self, unitBeingBuilt, order)

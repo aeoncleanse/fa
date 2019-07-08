@@ -16,6 +16,8 @@ local EffectUtil = import('/lua/EffectUtilities.lua')
 local Buff = import('/lua/sim/Buff.lua')
 
 UEL0001 = Class(ACUUnit) {
+    RightGunLabel = 'RightZephyr',
+
     Weapons = {
         DeathWeapon = Class(DeathNukeWeapon) {},
         RightZephyr = Class(TDFZephyrCannonWeapon) {},
@@ -25,19 +27,10 @@ UEL0001 = Class(ACUUnit) {
         TacNukeMissile = Class(TIFCruiseMissileLauncher) {},
     },
 
-    __init = function(self)
-        ACUUnit.__init(self, 'RightZephyr')
-    end,
-
     OnCreate = function(self)
         ACUUnit.OnCreate(self)
-        self:SetCapturable(false)
-        self:HideBones({'Right_Upgrade', 'Left_Upgrade', 'Back_Upgrade_B01'}, true)
-        self:SetupBuildBones()
         self.HasLeftPod = false
         self.HasRightPod = false
-        -- Restrict what enhancements will enable later
-        self:AddBuildRestriction(categories.UEF * (categories.BUILTBYTIER2COMMANDER + categories.BUILTBYTIER3COMMANDER))
     end,
 
     OnStopBeingBuilt = function(self, builder, layer)
@@ -226,14 +219,10 @@ UEL0001 = Class(ACUUnit) {
         elseif enh =='AdvancedEngineeringRemove' then
             local bp = self:GetBlueprint().Economy.BuildRate
             if not bp then return end
-            self:RestoreBuildRestrictions()
-            self:AddBuildRestriction(categories.UEF * (categories.BUILTBYTIER2COMMANDER + categories.BUILTBYTIER3COMMANDER))
-            self:AddBuildRestriction(categories.UEF * (categories.BUILTBYTIER2COMMANDER + categories.BUILTBYTIER3COMMANDER))
+            self:SetDefaultBuildRestrictions()
             if Buff.HasBuff(self, 'UEFACUT2BuildRate') then
                 Buff.RemoveBuff(self, 'UEFACUT2BuildRate')
             end
-            -- Engymod addition: After fiddling with build restrictions, update engymod build restrictions
-            self:updateBuildRestrictions()
         elseif enh =='T3Engineering' then
             local cat = ParseEntityCategory(bp.BuildableCategoryAdds)
             self:RemoveBuildRestriction(cat)
@@ -266,13 +255,10 @@ UEL0001 = Class(ACUUnit) {
         elseif enh =='T3EngineeringRemove' then
             local bp = self:GetBlueprint().Economy.BuildRate
             if not bp then return end
-            self:RestoreBuildRestrictions()
+            self:SetDefaultBuildRestrictions()
             if Buff.HasBuff(self, 'UEFACUT3BuildRate') then
                 Buff.RemoveBuff(self, 'UEFACUT3BuildRate')
             end
-            self:AddBuildRestriction(categories.UEF * (categories.BUILTBYTIER2COMMANDER + categories.BUILTBYTIER3COMMANDER))
-            -- Engymod addition: After fiddling with build restrictions, update engymod build restrictions
-            self:updateBuildRestrictions()
         elseif enh =='DamageStabilization' then
             if not Buffs['UEFACUDamageStabilization'] then
                 BuffBlueprint {

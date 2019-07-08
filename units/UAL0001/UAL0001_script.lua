@@ -18,6 +18,8 @@ local ADFChronoDampener = AWeapons.ADFChronoDampener
 local Buff = import('/lua/sim/Buff.lua')
 
 UAL0001 = Class(ACUUnit) {
+    RightGunLabel = 'RightDisruptor',
+
     Weapons = {
         DeathWeapon = Class(DeathNukeWeapon) {},
         RightDisruptor = Class(ADFDisruptorCannonWeapon) {},
@@ -25,19 +27,6 @@ UAL0001 = Class(ACUUnit) {
         OverCharge = Class(ADFOverchargeWeapon) {},
         AutoOverCharge = Class(ADFOverchargeWeapon) {},
     },
-
-    __init = function(self)
-        ACUUnit.__init(self, 'RightDisruptor')
-    end,
-
-    OnCreate = function(self)
-        ACUUnit.OnCreate(self)
-        self:SetCapturable(false)
-        self:SetupBuildBones()
-        self:HideBones({'Back_Upgrade', 'Right_Upgrade', 'Left_Upgrade'}, true)
-        -- Restrict what enhancements will enable later
-        self:AddBuildRestriction(categories.AEON * (categories.BUILTBYTIER2COMMANDER + categories.BUILTBYTIER3COMMANDER))
-    end,
 
     OnStopBeingBuilt = function(self, builder, layer)
         ACUUnit.OnStopBeingBuilt(self, builder, layer)
@@ -156,13 +145,10 @@ UAL0001 = Class(ACUUnit) {
         elseif enh =='AdvancedEngineeringRemove' then
             local bp = self:GetBlueprint().Economy.BuildRate
             if not bp then return end
-            self:RestoreBuildRestrictions()
-            self:AddBuildRestriction(categories.AEON * (categories.BUILTBYTIER2COMMANDER + categories.BUILTBYTIER3COMMANDER))
+            self:SetDefaultBuildRestrictions()
             if Buff.HasBuff(self, 'AeonACUT2BuildRate') then
                 Buff.RemoveBuff(self, 'AeonACUT2BuildRate')
          end
-        -- Engymod addition: After fiddling with build restrictions, update engymod build restrictions
-        self:updateBuildRestrictions()
         -- T3 Engineering
         elseif enh =='T3Engineering' then
             local bp = self:GetBlueprint().Enhancements[enh]
@@ -198,13 +184,10 @@ UAL0001 = Class(ACUUnit) {
         elseif enh =='T3EngineeringRemove' then
             local bp = self:GetBlueprint().Economy.BuildRate
             if not bp then return end
-            self:RestoreBuildRestrictions()
-            self:AddBuildRestriction(categories.AEON * (categories.BUILTBYTIER2COMMANDER + categories.BUILTBYTIER3COMMANDER))
+            self:SetDefaultBuildRestrictions()
             if Buff.HasBuff(self, 'AeonACUT3BuildRate') then
                 Buff.RemoveBuff(self, 'AeonACUT3BuildRate')
          end
-        -- Engymod addition: After fiddling with build restrictions, update engymod build restrictions
-        self:updateBuildRestrictions()
         -- Crysalis Beam
         elseif enh == 'CrysalisBeam' then
             local wep = self:GetWeaponByLabel('RightDisruptor')
