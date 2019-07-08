@@ -4,10 +4,6 @@ UnitBlueprint {
         TargetBones = {
             'Torso',
             'Head',
-#            'Right_Arm01',
-#            'Left_Arm01',
-#            'Left_Thigh',
-#            'Right_Thigh',
         },
     },
     Audio = {
@@ -274,7 +270,7 @@ UnitBlueprint {
             'BUILTBYTIER3ENGINEER CYBRAN',
         },
         MaintenanceConsumptionPerSecondEnergy = 0,
-    MaxBuildDistance = 10,
+        MaxBuildDistance = 10,
         NaturalProducer = true,
         ProductionPerSecondEnergy = 20,
         ProductionPerSecondMass = 1,
@@ -745,7 +741,7 @@ UnitBlueprint {
             DamageType = 'Normal',
             DisplayName = 'Disintegrator Pulse Laser',
             FireTargetLayerCapsTable = {
-                Land = 'Land|Water|Seabed',                            --Seabed fire caps removed (IceDreamer)
+                Land = 'Land|Water|Seabed',
                 Water = 'Land|Water|Seabed',
             },
             FiringTolerance = 2,
