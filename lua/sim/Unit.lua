@@ -357,48 +357,10 @@ Unit = Class(moho.unit_methods) {
 
     -- Updates build restrictions of any unit passed, used for support factories
     updateBuildRestrictions = function(self)
-        local faction = false
-        local type = false
-        local techlevel = false
-
-        -- Defines the unit's faction
-        if EntityCategoryContains(categories.AEON, self) then
-            faction = categories.AEON
-        elseif EntityCategoryContains(categories.UEF, self) then
-            faction = categories.UEF
-        elseif EntityCategoryContains(categories.CYBRAN, self) then
-            faction = categories.CYBRAN
-        elseif EntityCategoryContains(categories.SERAPHIM, self) then
-            faction = categories.SERAPHIM
-        end
-
-        -- Defines the unit's layer type
-        if EntityCategoryContains(categories.LAND, self) then
-            type = categories.LAND
-        elseif EntityCategoryContains(categories.AIR, self) then
-            type = categories.AIR
-        elseif EntityCategoryContains(categories.NAVAL, self) then
-            type = categories.NAVAL
-        end
-
-        -- Defines the unit's tech level
-        if EntityCategoryContains(categories.TECH1, self) then
-            techlevel = categories.TECH1
-        elseif EntityCategoryContains(categories.TECH2, self) then
-            techlevel = categories.TECH2
-        elseif EntityCategoryContains(categories.TECH3, self) then
-            techlevel = categories.TECH3
-        end
-
         local aiBrain = self:GetAIBrain()
         local supportfactory = false
 
-        -- Sanity check.
-        if not faction then
-            return
-        end
-
-        -- Add build restrictions
+        -- Add all the build restrictions, to give a base state to remove them from. This is totally efficient. Not.
         if EntityCategoryContains(categories.FACTORY, self) then
             if EntityCategoryContains(categories.SUPPORTFACTORY, self) then
                 -- Add support factory cannot build higher tech units at all, until there is a HQ factory
@@ -417,29 +379,26 @@ Unit = Class(moho.unit_methods) {
         end
 
         -- Check for the existence of HQs
-        if supportfactory then
-            if not type then
-                return
-            end
-            for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH2 * faction, false, true) do
+        if supportfactory and self.layerCategory then
+            for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH2 * self.factionCategory, false, true) do
                 if not unit.Dead and not unit:IsBeingBuilt() then
                     self:RemoveBuildRestriction(categories.TECH2 * categories.MOBILE * categories.CONSTRUCTION)
                 end
             end
-            for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH3 * faction, false, true) do
+            for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH3 * self.factionCategory, false, true) do
                 if not unit.Dead and not unit:IsBeingBuilt() then
                     self:RemoveBuildRestriction(categories.TECH2 * categories.MOBILE * categories.CONSTRUCTION)
                     self:RemoveBuildRestriction(categories.TECH3 * categories.MOBILE * categories.CONSTRUCTION)
                     break
                 end
             end
-            for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH2 * faction * type, false, true) do
+            for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH2 * self.factionCategory * self.layerCategory, false, true) do
                 if not unit.Dead and not unit:IsBeingBuilt() then
                     self:RemoveBuildRestriction(categories.TECH2 * categories.MOBILE)
                     break
                 end
             end
-            for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH3 * faction * type, false, true) do
+            for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH3 * self.factionCategory * self.layerCategory, false, true) do
                 if not unit.Dead and not unit:IsBeingBuilt() then
                     self:RemoveBuildRestriction(categories.TECH2 * categories.MOBILE)
                     self:RemoveBuildRestriction(categories.TECH3 * categories.MOBILE)
@@ -450,34 +409,34 @@ Unit = Class(moho.unit_methods) {
         else
             for _, researchType in ipairs({categories.LAND, categories.AIR, categories.NAVAL}) do
                 -- If there is a research station of the appropriate type, enable support factory construction
-                for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH2 * faction * researchType, false, true) do
+                for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH2 * self.factionCategory * researchType, false, true) do
                     if not unit.Dead and not unit:IsBeingBuilt() then
                         -- Special case for the Commander, since its engineering upgrades are implemented using build restrictions
                         -- In future, figure out a way to query existing legal builds? For example, check if you can build T2, if you can, enable support factory too
                         if EntityCategoryContains(categories.COMMAND, self) then
                             if self:HasEnhancement('AdvancedEngineering') or self:HasEnhancement('T3Engineering') then
-                                self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * faction * researchType)
+                                self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * self.factionCategory * researchType)
                             end
                         else
-                            self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * faction * researchType)
+                            self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * self.factionCategory * researchType)
                         end
                         break
                     end
                 end
-                for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH3 * faction * researchType, false, true) do
+                for id, unit in aiBrain:GetListOfUnits(categories.RESEARCH * categories.TECH3 * self.factionCategory * researchType, false, true) do
                     if not unit.Dead and not unit:IsBeingBuilt() then
 
                         -- Special case for the commander, since its engineering upgrades are implemented using build restrictions
                         if EntityCategoryContains(categories.COMMAND, self) then
                             if self:HasEnhancement('AdvancedEngineering') then
-                                self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * faction * researchType)
+                                self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * self.factionCategory * researchType)
                             elseif self:HasEnhancement('T3Engineering') then
-                                self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * faction * researchType)
-                                self:RemoveBuildRestriction(categories.TECH3 * categories.SUPPORTFACTORY * faction * researchType)
+                                self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * self.factionCategory * researchType)
+                                self:RemoveBuildRestriction(categories.TECH3 * categories.SUPPORTFACTORY * self.factionCategory * researchType)
                             end
                         else
-                            self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * faction * researchType)
-                            self:RemoveBuildRestriction(categories.TECH3 * categories.SUPPORTFACTORY * faction * researchType)
+                            self:RemoveBuildRestriction(categories.TECH2 * categories.SUPPORTFACTORY * self.factionCategory * researchType)
+                            self:RemoveBuildRestriction(categories.TECH3 * categories.SUPPORTFACTORY * self.factionCategory * researchType)
                         end
 
                         break
